@@ -1,0 +1,9 @@
+# docker-compose up
+version: '3.5'
+
+services:
+
+  sandman-bind9-manager:
+    image: abilioesteves/sandman-bind9-manager:0.0.2
+    ports: 
+      - 7070:7070

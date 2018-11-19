@@ -1,7 +1,10 @@
 package main
 
-import "github.com/labbsr0x/sandman-bind9-manager/src/manager"
+import (
+	"github.com/labbsr0x/sandman-bind9-manager/src/manager"
+	"github.com/labbsr0x/sandman-dns-webhook/src/hook"
+)
 
 func main() {
-	manager.Hello("World!")
+	hook.Initialize(manager.New())
 }
