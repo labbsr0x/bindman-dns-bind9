@@ -4,7 +4,7 @@ import (
 	hookTypes "github.com/labbsr0x/sandman-dns-webhook/src/types"
 )
 
-// Bind9Manager holds the information for managing a dummy dns server
+// Bind9Manager holds the information for managing a bind9 dns server
 type Bind9Manager struct {
 	DNSRecords map[string]hookTypes.DNSRecord
 }
