@@ -2,6 +2,9 @@ package manager
 
 import (
 	"encoding/json"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -12,26 +15,39 @@ import (
 
 // Bind9Manager holds the information for managing a bind9 dns server
 type Bind9Manager struct {
-	DNSRecords         *diskv.Diskv
-	TTL                int
-	RemovalWaitingTime time.Duration
-	NSUpdate           *nsupdate.NSUpdate
+	DNSRecords   *diskv.Diskv
+	TTL          int
+	RemovalDelay time.Duration
+	NSUpdate     *nsupdate.NSUpdate
 }
 
 // New creates a new Bind9Manager
-func New() *Bind9Manager {
-	nsu, err := nsupdate.New("", "", "")
+func New() (result *Bind9Manager) {
+	nsu, err := nsupdate.New(BasePath)
 	hookTypes.PanicIfError(hookTypes.Error{Message: "Not possible to start the Bind9Manager; something went wrong while setting up NSUpdate: %s", Code: ErrInitNSUpdate, Err: err})
-	return &Bind9Manager{
+
+	result = &Bind9Manager{
 		DNSRecords: diskv.New(diskv.Options{
-			BasePath:     "data",
+			BasePath:     BasePath,
 			Transform:    func(s string) []string { return []string{} },
 			CacheSizeMax: 1024 * 1024,
 		}),
-		TTL:                3600,             // TODO: get from env
-		RemovalWaitingTime: 10 * time.Second, // TODO: get from env
-		NSUpdate:           nsu,              // TODO: get from env
+		TTL:          3600,
+		RemovalDelay: 10 * time.Minute,
+		NSUpdate:     nsu,
 	}
+
+	// get ttl from env
+	if ttl, err := strconv.Atoi(strings.Trim(os.Getenv(SANDMAN_DNS_TTL), " ")); err == nil {
+		result.TTL = ttl
+	}
+
+	// get removal delay from env
+	if r, err := strconv.Atoi(strings.Trim(os.Getenv(SANDMAN_DNS_REMOVAL_DELAY), "")); err == nil {
+		result.RemovalDelay = time.Duration(r) * time.Minute
+	}
+
+	return result
 }
 
 // GetDNSRecords retrieves all the dns records being managed
@@ -66,7 +82,7 @@ func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (bool, error) {
 // RemoveDNSRecord removes a DNS record
 func (m *Bind9Manager) RemoveDNSRecord(name string) (bool, error) {
 	go m.delayRemove(name)
-	logrus.Infof("%s scheduled to be removed in %v seconds", name, m.RemovalWaitingTime)
+	logrus.Infof("%s scheduled to be removed in %v seconds", name, m.RemovalDelay)
 	return true, nil
 }
 
@@ -74,7 +90,7 @@ func (m *Bind9Manager) RemoveDNSRecord(name string) (bool, error) {
 // it cancels the operation when it idenfities the name was readded
 func (m *Bind9Manager) delayRemove(name string) {
 	m.DNSRecords.Erase(name) // marks its removal
-	c := time.Tick(m.RemovalWaitingTime)
+	c := time.Tick(m.RemovalDelay)
 	for {
 		select {
 		case <-c:

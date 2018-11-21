@@ -25,6 +25,8 @@ RUN apk add --no-cache --update \
 
 COPY --from=builder /manager /
 
+VOLUME [ "/data" ]
+
 EXPOSE 7070
 
 CMD ["./manager"]

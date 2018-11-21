@@ -5,5 +5,10 @@ services:
 
   sandman-bind9-manager:
     image: abilioesteves/sandman-bind9-manager:0.0.4
+    volumes:
+      - /tmp/keys:/data
     ports: 
       - 7070:7070
+    environment:
+      - SANDMAN_NAMESERVER_ADDRESS=192.168.99.104
+      - SANDMAN_NAMESERVER_KEYFILE=Kteste.com.+157.+1234.key
