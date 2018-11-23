@@ -43,7 +43,7 @@ func New() (result *Bind9Manager) {
 	}
 
 	// get removal delay from env
-	if r, err := strconv.Atoi(strings.Trim(os.Getenv(SANDMAN_DNS_REMOVAL_DELAY), "")); err == nil {
+	if r, err := strconv.Atoi(strings.Trim(os.Getenv(SANDMAN_DNS_REMOVAL_DELAY), " ")); err == nil {
 		result.RemovalDelay = time.Duration(r) * time.Minute
 	}
 
