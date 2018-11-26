@@ -70,10 +70,11 @@ func (m *Bind9Manager) GetDNSRecord(name string) (*hookTypes.DNSRecord, error) {
 
 // AddDNSRecord adds a new DNS record
 func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (bool, error) {
-	succ, err := m.NSUpdate.AddRR(record.Name, record.IPAddr, record.TTL)
+	succ, err := m.NSUpdate.AddRR(record.Name, record.IPAddr, m.TTL)
 	if succ {
 		r, _ := json.Marshal(record)
 		m.DNSRecords.Write(record.Name, r)
+
 		return true, nil
 	}
 	return false, err
@@ -84,26 +85,4 @@ func (m *Bind9Manager) RemoveDNSRecord(name string) (bool, error) {
 	go m.delayRemove(name)
 	logrus.Infof("%s scheduled to be removed in %v seconds", name, m.RemovalDelay)
 	return true, nil
-}
-
-// delayRemove schedules the removal of a DNS Resource Record
-// it cancels the operation when it idenfities the name was readded
-func (m *Bind9Manager) delayRemove(name string) {
-	m.DNSRecords.Erase(name) // marks its removal
-	c := time.Tick(m.RemovalDelay)
-	for {
-		select {
-		case <-c:
-			if _, err := m.DNSRecords.Read(name); err == nil { // record has been readded
-				logrus.Infof("Cancelling delayed removal of '%s'", name)
-				return
-			}
-
-			// only remove in case the record has not been readded
-			if succ, err := m.NSUpdate.RemoveRR(name); !succ {
-				logrus.Infof("Error occurred while trying to remove '%s': %s", name, err)
-			}
-			return
-		}
-	}
 }

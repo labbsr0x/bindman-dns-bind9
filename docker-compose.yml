@@ -4,7 +4,7 @@ version: '3.5'
 services:
 
   sandman-bind9-manager:
-    image: abilioesteves/sandman-bind9-manager:0.0.4
+    image: abilioesteves/sandman-bind9-manager:0.0.6
     volumes:
       - /tmp/keys:/data
     ports: 
@@ -12,4 +12,5 @@ services:
     environment:
       - SANDMAN_NAMESERVER_ADDRESS=192.168.99.104
       - SANDMAN_NAMESERVER_KEYFILE=Kteste.com.+157.+1234.key
+      - SANDMAN_NAMESERVER_ZONE=teste.com
       - SANDMAN_DNS_REMOVAL_DELAY=1

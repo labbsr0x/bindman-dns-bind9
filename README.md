@@ -18,7 +18,7 @@ The manager needs to keep a store of records being managed. Hence, a `/data` vol
 
 1. `mandatory` **SANDMAN_NAMESERVER_ADDRESS**: address of the nameserver that a instance of a Sandman Bind9 Manager will manage
 
-2. `mandatory` **SANDMAN_NAMESERVER_KEYFILE**: the keyfile name that will be used to authenticate with the nameserver. **MUST** match the regexp: `K.*\.\+157\.\+.*\.key` and shouldbe found inside the `/data` volume
+2. `mandatory` **SANDMAN_NAMESERVER_KEYFILE**: the keyfile name that will be used to authenticate with the nameserver. **MUST** match the regexp `K.*\.\+157\.\+.*\.key` and **MUST** be inside the `/data` volume
 
 3. `optional` **SANDMAN_NAMESERVER_PORT**: custom port for communication with the nameserver; defaults to `53`
 
