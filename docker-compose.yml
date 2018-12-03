@@ -4,13 +4,13 @@ version: '3.5'
 services:
 
   sandman-bind9-manager:
-    image: abilioesteves/sandman-bind9-manager:0.0.6
+    image: abilioesteves/sandman-bind9-manager:0.0.14
     volumes:
-      - /tmp/keys:/data
+      - /srv/docker/sandman:/data
     ports: 
       - 7070:7070
     environment:
-      - SANDMAN_NAMESERVER_ADDRESS=192.168.99.104
-      - SANDMAN_NAMESERVER_KEYFILE=Kteste.com.+157.+1234.key
-      - SANDMAN_NAMESERVER_ZONE=teste.com
+      - SANDMAN_NAMESERVER_ADDRESS=
+      - SANDMAN_NAMESERVER_KEYFILE=Ktest.com.+157+50086.key
+      - SANDMAN_NAMESERVER_ZONE=test.com
       - SANDMAN_DNS_REMOVAL_DELAY=1

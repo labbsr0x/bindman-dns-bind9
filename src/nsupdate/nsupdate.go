@@ -42,6 +42,7 @@ func New(basePath string) (result *NSUpdate, err error) {
 // RemoveRR removes a Resource Record
 func (nsu *NSUpdate) RemoveRR(name string) (bool, error) {
 	cmd := fmt.Sprintf("update delete %s.%s. %s\n", nsu.getSubdomainName(name), nsu.Zone, "A")
+	logrus.Infof("cmd to be executed: %s", cmd)
 	return nsu.ExecuteCommand(cmd)
 }
 
@@ -49,7 +50,8 @@ func (nsu *NSUpdate) RemoveRR(name string) (bool, error) {
 func (nsu *NSUpdate) AddRR(name string, ipaddr string, ttl int) (success bool, err error) {
 	success, err = nsu.checkName(name)
 	if success {
-		cmd := fmt.Sprintf("update add %s.%s %d %s %s\n", nsu.getSubdomainName(name), nsu.Zone, ttl, "A", nsu.Server)
+		cmd := fmt.Sprintf("update add %s.%s. %d %s %s\n", nsu.getSubdomainName(name), nsu.Zone, ttl, "A", ipaddr)
+		logrus.Infof("cmd to be executed: %s", cmd)
 		success, err = nsu.ExecuteCommand(cmd)
 	} else {
 		err = fmt.Errorf("The record name '%s' is not allowed. Must be of the following format: <subdomain>.%s", name, nsu.Zone)
@@ -93,12 +95,14 @@ func (nsu *NSUpdate) BuildCmdFile(cmd string) (fileName string, err error) {
 // ExecCmdFile executes an nsupdate cmd file
 func (nsu *NSUpdate) ExecCmdFile(filePath string) (success bool, err error) {
 	var out bytes.Buffer
-	exe := exec.Command("nsupdate", "-k", nsu.getKeyFilePath(), filePath)
+	exe := exec.Command("nsupdate", "-v", "-k", nsu.getKeyFilePath(), filePath)
 	exe.Stdout = &out
 	err = exe.Run()
 
 	if err == nil {
 		success = true
+	} else {
+		err = fmt.Errorf("%s: %s", err.Error(), out.String())
 	}
 
 	return
