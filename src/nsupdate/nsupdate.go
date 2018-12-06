@@ -20,16 +20,19 @@ type NSUpdate struct {
 	KeyFile  string
 	BasePath string
 	Zone     string
+	Debug    bool
 }
 
 // New constructs a new NSUpdate instance from environment variables
 func New(basePath string) (result *NSUpdate, err error) {
+	mode := strings.Trim(os.Getenv(SANDMAN_MODE), " ")
 	result = &NSUpdate{
 		Server:   strings.Trim(os.Getenv(SANDMAN_NAMESERVER_ADDRESS), " "),
 		Port:     strings.Trim(os.Getenv(SANDMAN_NAMESERVER_PORT), " "),
 		KeyFile:  strings.Trim(os.Getenv(SANDMAN_NAMESERVER_KEYFILE), " "),
 		Zone:     strings.Trim(os.Getenv(SANDMAN_NAMESERVER_ZONE), " "),
 		BasePath: basePath,
+		Debug:    mode == "DEBUG",
 	}
 
 	if succ, errs := result.check(); !succ {
@@ -68,7 +71,9 @@ func (nsu *NSUpdate) ExecuteCommand(cmd string) (success bool, err error) {
 		if err == nil {
 			logrus.Infof("Executes cmd %s successfully", cmd)
 		}
-		os.Remove(fileName)
+		if !nsu.Debug {
+			os.Remove(fileName)
+		}
 	}
 	return
 }

@@ -19,6 +19,9 @@ const (
 
 	// SANDMAN_NAMESERVER_ZONE environment variable identifier for the zone to be managed
 	SANDMAN_NAMESERVER_ZONE = "SANDMAN_NAMESERVER_ZONE"
+
+	// SANDMAN_MODE defines the execution mode of sandman (DEBUG|PROD); defaults to PROD
+	SANDMAN_MODE = "SANDMAN_MODE"
 )
 
 // check tests if a NSUpdate setup is ok; returns a set of error strings in case something is not right
