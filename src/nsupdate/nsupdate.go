@@ -25,12 +25,12 @@ type NSUpdate struct {
 
 // New constructs a new NSUpdate instance from environment variables
 func New(basePath string) (result *NSUpdate, err error) {
-	mode := strings.Trim(os.Getenv(SANDMAN_MODE), " ")
+	mode := strings.Trim(os.Getenv(BINDMAN_MODE), " ")
 	result = &NSUpdate{
-		Server:   strings.Trim(os.Getenv(SANDMAN_NAMESERVER_ADDRESS), " "),
-		Port:     strings.Trim(os.Getenv(SANDMAN_NAMESERVER_PORT), " "),
-		KeyFile:  strings.Trim(os.Getenv(SANDMAN_NAMESERVER_KEYFILE), " "),
-		Zone:     strings.Trim(os.Getenv(SANDMAN_NAMESERVER_ZONE), " "),
+		Server:   strings.Trim(os.Getenv(BINDMAN_NAMESERVER_ADDRESS), " "),
+		Port:     strings.Trim(os.Getenv(BINDMAN_NAMESERVER_PORT), " "),
+		KeyFile:  strings.Trim(os.Getenv(BINDMAN_NAMESERVER_KEYFILE), " "),
+		Zone:     strings.Trim(os.Getenv(BINDMAN_NAMESERVER_ZONE), " "),
 		BasePath: basePath,
 		Debug:    mode == "DEBUG",
 	}
