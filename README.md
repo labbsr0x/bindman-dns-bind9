@@ -1,28 +1,26 @@
-# Sandman Bind9 Manager
+# Bindman DNS
 
-This repository defines the Sandman component that manages a Bind9 instance through nsupdates dispatched from a Sandman DNS Listener.
+This repository defines the component that manages Bind9 DNS Server instancies.
 
-A listener is responsible for calling a manager whenever DNS Binding updates are identified. 
-
-The REST APIs contracts are defined by the [Sandman DNS Webhook](https://github.com/labbsr0x/sandman-dns-webhook) project
+NSUpdate commands get dispatched from REST API calls defined in the bindman webhook project [Bindman DNS Webhook](https://github.com/labbsr0x/sandman-dns-webhook).
 
 # Configuration
 
-The manager is setup with the help of environment variables and volume mapping in the following way: 
+The bindman is setup with the help of environment variables and volume mapping in the following way: 
 
 ## Volume Mapping
 
-The manager needs to keep a store of records being managed. Hence, a `/data` volume must be mapped to the host. There we also expect to find the `.private` and `.key` files for secure communication with the actual `nameserver`
+A store of records being managed is needed. Hence, a `/data` volume must be mapped to the host. There, we also expect to find the `.private` and `.key` files for secure communication with the actual `nameserver`
 
 ## Environment variables
 
-1. `mandatory` **SANDMAN_NAMESERVER_ADDRESS**: address of the nameserver that an instance of a Sandman Bind9 Manager will manage
+1. `mandatory` **BINDMAN_NAMESERVER_ADDRESS**: address of the nameserver that an instance of a Bindman will manage
 
-2. `mandatory` **SANDMAN_NAMESERVER_KEYFILE**: the keyfile name that will be used to authenticate with the nameserver. **MUST** match the regexp `K.*\.\+157\+.*\.key` and **MUST** be inside the `/data` volume
+2. `mandatory` **BINDMAN_NAMESERVER_KEYFILE**: the keyfile name that will be used to authenticate with the nameserver. **MUST** match the regexp `K.*\.\+157\+.*\.key` and **MUST** be inside the `/data` volume
 
-3. `optional` **SANDMAN_NAMESERVER_PORT**: custom port for communication with the nameserver; defaults to `53`
+3. `optional` **BINDMAN_NAMESERVER_PORT**: custom port for communication with the nameserver; defaults to `53`
 
-4. `optional` **SANDMAN_DNS_TTL**: the dns recording rule expiration time (or time-to-live). By default, the TTL is **3600 seconds**.
+4. `optional` **BINDMAN_DNS_TTL**: the dns recording rule expiration time (or time-to-live). By default, the TTL is **3600 seconds**.
 
-5. `optional` **SANDMAN_DNS_REMOVAL_DELAY**: the delay in minutes to be applied to the removal of an DNS entry. The default is 1 minutes. This is to guarantee that in fact the removal should be processed.
+5. `optional` **BINDMAN_DNS_REMOVAL_DELAY**: the delay in minutes to be applied to the removal of an DNS entry. The default is 1 minutes. This is to guarantee that in fact the removal should be processed.
 
