@@ -16,11 +16,15 @@ A store of records being managed is needed. Hence, a `/data` volume must be mapp
 
 1. `mandatory` **BINDMAN_NAMESERVER_ADDRESS**: address of the nameserver that an instance of a Bindman will manage
 
-2. `mandatory` **BINDMAN_NAMESERVER_KEYFILE**: the keyfile name that will be used to authenticate with the nameserver. **MUST** match the regexp `K.*\.\+157\+.*\.key` and **MUST** be inside the `/data` volume
+2. `mandatory` **BINDMAN_NAMESERVER_KEYFILE**: the zone keyfile name that will be used to authenticate with the nameserver. **MUST** match the regexp `K.*\.\+157\+.*\.key` and **MUST** be inside the `/data` volume
 
-3. `optional` **BINDMAN_NAMESERVER_PORT**: custom port for communication with the nameserver; defaults to `53`
+3. `mandatory` **BINDMAN_NAMESERVER_ZONE**: the name of the zone a bindman-dns-bind9 instance is able to manage;
 
-4. `optional` **BINDMAN_DNS_TTL**: the dns recording rule expiration time (or time-to-live). By default, the TTL is **3600 seconds**.
+4. `optional` **BINDMAN_NAMESERVER_PORT**: custom port for communication with the nameserver; defaults to `53`
 
-5. `optional` **BINDMAN_DNS_REMOVAL_DELAY**: the delay in minutes to be applied to the removal of an DNS entry. The default is 1 minutes. This is to guarantee that in fact the removal should be processed.
+5. `optional` **BINDMAN_DNS_TTL**: the dns recording rule expiration time (or time-to-live). By default, the TTL is **3600 seconds**.
+
+6. `optional` **BINDMAN_DNS_REMOVAL_DELAY**: the delay in minutes to be applied to the removal of an DNS entry. The default is 1 minutes. This is to guarantee that in fact the removal should be processed.
+
+7. `optional` **BINDMAN_MODE**: let the runtime know if the DEBUG mode is activated; useful for debugging the intermediary files created for sending `nsupdate` commands. Possible values: `DEBUG|PROD`. Empty defaults to `PROD`.
 
