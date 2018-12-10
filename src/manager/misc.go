@@ -16,10 +16,10 @@ const (
 	BasePath = "/data"
 
 	// SANDMAN_DNS_TTL environment variable identifier for the time-to-live to be applied
-	SANDMAN_DNS_TTL = "SANDMAN_DNS_TTL"
+	SANDMAN_DNS_TTL = "BINDMAN_DNS_TTL"
 
 	// SANDMAN_DNS_REMOVAL_DELAY environment variable identifier for the removal delay time to be applied
-	SANDMAN_DNS_REMOVAL_DELAY = "SANDMAN_DNS_REMOVAL_DELAY"
+	SANDMAN_DNS_REMOVAL_DELAY = "BINDMAN_DNS_REMOVAL_DELAY"
 )
 
 // delayRemove schedules the removal of a DNS Resource Record

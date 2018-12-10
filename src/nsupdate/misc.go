@@ -8,20 +8,20 @@ import (
 )
 
 const (
-	// SANDMAN_NAMESERVER_ADDRESS environment variable identifier for the nameserver address
-	SANDMAN_NAMESERVER_ADDRESS = "SANDMAN_NAMESERVER_ADDRESS"
+	// BINDMAN_NAMESERVER_ADDRESS environment variable identifier for the nameserver address
+	BINDMAN_NAMESERVER_ADDRESS = "BINDMAN_NAMESERVER_ADDRESS"
 
-	// SANDMAN_NAMESERVER_PORT environment variable identifier for the nameserver port
-	SANDMAN_NAMESERVER_PORT = "SANDMAN_NAMESERVER_PORT"
+	// BINDMAN_NAMESERVER_PORT environment variable identifier for the nameserver port
+	BINDMAN_NAMESERVER_PORT = "BINDMAN_NAMESERVER_PORT"
 
-	// SANDMAN_NAMESERVER_KEYFILE environment variable identifier for the nameserver key name
-	SANDMAN_NAMESERVER_KEYFILE = "SANDMAN_NAMESERVER_KEYFILE"
+	// BINDMAN_NAMESERVER_KEYFILE environment variable identifier for the nameserver key name
+	BINDMAN_NAMESERVER_KEYFILE = "BINDMAN_NAMESERVER_KEYFILE"
 
-	// SANDMAN_NAMESERVER_ZONE environment variable identifier for the zone to be managed
-	SANDMAN_NAMESERVER_ZONE = "SANDMAN_NAMESERVER_ZONE"
+	// BINDMAN_NAMESERVER_ZONE environment variable identifier for the zone to be managed
+	BINDMAN_NAMESERVER_ZONE = "BINDMAN_NAMESERVER_ZONE"
 
-	// SANDMAN_MODE defines the execution mode of sandman (DEBUG|PROD); defaults to PROD
-	SANDMAN_MODE = "SANDMAN_MODE"
+	// BINDMAN_MODE defines the execution mode of bindman (DEBUG|PROD); defaults to PROD
+	BINDMAN_MODE = "BINDMAN_MODE"
 )
 
 // check tests if a NSUpdate setup is ok; returns a set of error strings in case something is not right
@@ -29,23 +29,23 @@ func (nsu *NSUpdate) check() (success bool, errs []string) {
 	success = true
 	errMsg := "The environment variable %s cannot be empty"
 	if nsu.Server == "" {
-		errs = append(errs, fmt.Sprintf(errMsg, SANDMAN_NAMESERVER_ADDRESS))
+		errs = append(errs, fmt.Sprintf(errMsg, BINDMAN_NAMESERVER_ADDRESS))
 		success = false
 	}
 
 	if nsu.KeyFile == "" {
-		errs = append(errs, fmt.Sprintf(errMsg, SANDMAN_NAMESERVER_KEYFILE))
+		errs = append(errs, fmt.Sprintf(errMsg, BINDMAN_NAMESERVER_KEYFILE))
 		success = false
 	}
 
 	if nsu.Zone == "" {
-		errs = append(errs, fmt.Sprintf(errMsg, SANDMAN_NAMESERVER_ZONE))
+		errs = append(errs, fmt.Sprintf(errMsg, BINDMAN_NAMESERVER_ZONE))
 		success = false
 	}
 
 	m := `K.*\.\+157\+.*\.key`
 	if succ, _ := regexp.MatchString(m, nsu.KeyFile); !succ {
-		errs = append(errs, fmt.Sprintf("Environment variable %s did not match the regex %v: %s", SANDMAN_NAMESERVER_KEYFILE, m, nsu.KeyFile))
+		errs = append(errs, fmt.Sprintf("Environment variable %s did not match the regex %v: %s", BINDMAN_NAMESERVER_KEYFILE, m, nsu.KeyFile))
 		success = false
 	}
 

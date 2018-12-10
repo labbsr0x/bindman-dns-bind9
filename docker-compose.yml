@@ -3,14 +3,14 @@ version: '3.5'
 
 services:
 
-  sandman-bind9-manager:
-    image: abilioesteves/sandman-bind9-manager:0.0.16
+  bindman-dns-bind9:
+    image: abilioesteves/bindman-dns-bind9:0.0.1
     volumes:
-      - /srv/docker/sandman:/data
+      - /srv/docker/bindman:/data
     ports: 
       - 7070:7070
     environment:
-      - SANDMAN_NAMESERVER_ADDRESS=
-      - SANDMAN_NAMESERVER_KEYFILE=
-      - SANDMAN_NAMESERVER_ZONE=
-      - SANDMAN_DNS_REMOVAL_DELAY=1
+      - BINDMAN_NAMESERVER_ADDRESS=
+      - BINDMAN_NAMESERVER_KEYFILE=
+      - BINDMAN_NAMESERVER_ZONE=
+      - BINDMAN_DNS_REMOVAL_DELAY=1

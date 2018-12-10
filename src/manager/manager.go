@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/labbsr0x/sandman-dns-bind9-manager/src/nsupdate"
-	hookTypes "github.com/labbsr0x/sandman-dns-webhook/src/types"
+	"github.com/labbsr0x/bindman-dns-bind9/src/nsupdate"
+	hookTypes "github.com/labbsr0x/bindman-dns-webhook/src/types"
 	"github.com/peterbourgon/diskv"
 )
 
