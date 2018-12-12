@@ -20,6 +20,7 @@ services:
 
   bindman-dns-bind9:
     image: abilioesteves/bindman-dns-bind9:0.0.2
+    build: .
     volumes:
       - data:/data
     ports: 
@@ -29,6 +30,7 @@ services:
       - BINDMAN_NAMESERVER_KEYFILE=Ktest.com.+157+50086.key
       - BINDMAN_NAMESERVER_ZONE=test.com
       - BINDMAN_DNS_REMOVAL_DELAY=1
+      - BINDMAN_MODE=DEBUG
 
 volumes:
   data:

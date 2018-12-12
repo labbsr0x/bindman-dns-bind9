@@ -53,7 +53,7 @@ func (nsu *NSUpdate) RemoveRR(name, recordType string) (bool, error) {
 func (nsu *NSUpdate) AddRR(name, recordType, value string, ttl int) (success bool, err error) {
 	success, err = nsu.checkName(name)
 	if success {
-		cmd := fmt.Sprintf("update add %s.%s. %d %s \"%s\"\n", nsu.getSubdomainName(name), nsu.Zone, ttl, recordType, value)
+		cmd := fmt.Sprintf("update add %s.%s. %d %s %s\n", nsu.getSubdomainName(name), nsu.Zone, ttl, recordType, value)
 		logrus.Infof("cmd to be executed: %s", cmd)
 		success, err = nsu.ExecuteCommand(cmd)
 	} else {
