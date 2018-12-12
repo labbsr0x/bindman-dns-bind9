@@ -25,21 +25,26 @@ const (
 // delayRemove schedules the removal of a DNS Resource Record
 // it cancels the operation when it idenfities the name was readded
 func (m *Bind9Manager) delayRemove(name string) {
-	m.DNSRecords.Erase(name) // marks its removal
-	c := time.Tick(m.RemovalDelay)
-	for {
-		select {
-		case <-c:
-			if _, err := m.DNSRecords.Read(name); err == nil { // record has been readded
-				logrus.Infof("Cancelling delayed removal of '%s'", name)
+	record, err := m.GetDNSRecord(name) // marks its removal intent
+	if err == nil {
+		m.DNSRecords.Erase(name) // marks its removal
+		c := time.Tick(m.RemovalDelay)
+		for {
+			select {
+			case <-c:
+				if _, err := m.DNSRecords.Read(name); err == nil { // record has been readded
+					logrus.Infof("Cancelling delayed removal of '%s'", name)
+					return
+				}
+
+				// only remove in case the record has not been readded
+				if succ, err := m.NSUpdate.RemoveRR(name, record.Type); !succ {
+					logrus.Infof("Error occurred while trying to remove '%s': %s", name, err)
+				}
 				return
 			}
-
-			// only remove in case the record has not been readded
-			if succ, err := m.NSUpdate.RemoveRR(name); !succ {
-				logrus.Infof("Error occurred while trying to remove '%s': %s", name, err)
-			}
-			return
 		}
+	} else {
+		logrus.Errorf("Service '%v' cannot be removed given it does not exist.", name)
 	}
 }

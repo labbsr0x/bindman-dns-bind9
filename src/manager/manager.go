@@ -70,7 +70,7 @@ func (m *Bind9Manager) GetDNSRecord(name string) (*hookTypes.DNSRecord, error) {
 
 // AddDNSRecord adds a new DNS record
 func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (bool, error) {
-	succ, err := m.NSUpdate.AddRR(record.Name, record.IPAddr, m.TTL)
+	succ, err := m.NSUpdate.AddRR(record.Name, record.Type, record.Value, m.TTL)
 	if succ {
 		r, _ := json.Marshal(record)
 		m.DNSRecords.Write(record.Name, r)
