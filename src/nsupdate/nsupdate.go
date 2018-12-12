@@ -43,17 +43,17 @@ func New(basePath string) (result *NSUpdate, err error) {
 }
 
 // RemoveRR removes a Resource Record
-func (nsu *NSUpdate) RemoveRR(name string) (bool, error) {
-	cmd := fmt.Sprintf("update delete %s.%s. %s\n", nsu.getSubdomainName(name), nsu.Zone, "A")
+func (nsu *NSUpdate) RemoveRR(name, recordType string) (bool, error) {
+	cmd := fmt.Sprintf("update delete %s.%s. %s\n", nsu.getSubdomainName(name), nsu.Zone, recordType)
 	logrus.Infof("cmd to be executed: %s", cmd)
 	return nsu.ExecuteCommand(cmd)
 }
 
 // AddRR adds a Resource Record
-func (nsu *NSUpdate) AddRR(name string, ipaddr string, ttl int) (success bool, err error) {
+func (nsu *NSUpdate) AddRR(name, recordType, value string, ttl int) (success bool, err error) {
 	success, err = nsu.checkName(name)
 	if success {
-		cmd := fmt.Sprintf("update add %s.%s. %d %s %s\n", nsu.getSubdomainName(name), nsu.Zone, ttl, "A", ipaddr)
+		cmd := fmt.Sprintf("update add %s.%s. %d %s \"%s\"\n", nsu.getSubdomainName(name), nsu.Zone, ttl, recordType, value)
 		logrus.Infof("cmd to be executed: %s", cmd)
 		success, err = nsu.ExecuteCommand(cmd)
 	} else {
