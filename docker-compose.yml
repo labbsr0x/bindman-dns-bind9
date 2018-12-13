@@ -19,7 +19,7 @@ services:
         window: 5s
 
   bindman-dns-bind9:
-    image: abilioesteves/bindman-dns-bind9:0.0.2
+    image: abilioesteves/bindman-dns-bind9:0.0.3
     build: .
     volumes:
       - data:/data
