@@ -13,9 +13,6 @@ const (
 )
 
 const (
-	// BasePath defines the base path for storing and reading application specific files
-	BasePath = "/data"
-
 	// SANDMAN_DNS_TTL environment variable identifier for the time-to-live to be applied
 	SANDMAN_DNS_TTL = "BINDMAN_DNS_TTL"
 
@@ -42,7 +39,7 @@ func (m *Bind9Manager) delayRemove(name string) {
 				}
 
 				// only remove in case the record has not been readded
-				if succ, err := m.NSUpdate.RemoveRR(name, record.Type); !succ {
+				if succ, err := m.DNSUpdater.RemoveRR(name, record.Type); !succ {
 					logrus.Infof("Error occurred while trying to remove '%s': %s", name, err)
 				}
 				return
