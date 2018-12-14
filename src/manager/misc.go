@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -20,6 +21,9 @@ const (
 
 	// SANDMAN_DNS_REMOVAL_DELAY environment variable identifier for the removal delay time to be applied
 	SANDMAN_DNS_REMOVAL_DELAY = "BINDMAN_DNS_REMOVAL_DELAY"
+
+	// Extension sets the extension of the files holding the records infos
+	Extension = ".bindman"
 )
 
 // delayRemove schedules the removal of a DNS Resource Record
@@ -27,7 +31,7 @@ const (
 func (m *Bind9Manager) delayRemove(name string) {
 	record, err := m.GetDNSRecord(name) // marks its removal intent
 	if err == nil {
-		m.DNSRecords.Erase(name) // marks its removal
+		go m.removeRecord(name)
 		c := time.Tick(m.RemovalDelay)
 		for {
 			select {
@@ -47,4 +51,20 @@ func (m *Bind9Manager) delayRemove(name string) {
 	} else {
 		logrus.Errorf("Service '%v' cannot be removed given it does not exist.", name)
 	}
+}
+
+// removeRecord removes the record
+func (m *Bind9Manager) removeRecord(name string) {
+	m.Door.Lock()
+	defer m.Door.Unlock()
+	m.DNSRecords.Erase(m.getRecordFileName(name)) // marks its removal
+}
+
+// getRecordFileName return the name of the file holding the record information
+func (m *Bind9Manager) getRecordFileName(recordName string) string {
+	return recordName + Extension
+}
+
+func (m *Bind9Manager) getRecordName(fileName string) string {
+	return strings.TrimSuffix(fileName, Extension)
 }
