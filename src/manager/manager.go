@@ -2,9 +2,12 @@ package manager
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -15,26 +18,31 @@ import (
 
 // Bind9Manager holds the information for managing a bind9 dns server
 type Bind9Manager struct {
+	BasePath     string
 	DNSRecords   *diskv.Diskv
 	TTL          int
 	RemovalDelay time.Duration
-	NSUpdate     *nsupdate.NSUpdate
+	Door         *sync.RWMutex
+	DNSUpdater   nsupdate.DNSUpdater
 }
 
 // New creates a new Bind9Manager
-func New() (result *Bind9Manager) {
-	nsu, err := nsupdate.New(BasePath)
-	hookTypes.PanicIfError(hookTypes.Error{Message: "Not possible to start the Bind9Manager; something went wrong while setting up NSUpdate: %s", Code: ErrInitNSUpdate, Err: err})
+func New(dnsupdater nsupdate.DNSUpdater, basePath string) (result *Bind9Manager) {
+	if dnsupdater == nil {
+		hookTypes.Panic(hookTypes.Error{Message: "Not possible to start the Bind9Manager; something went wrong while setting up DNSUpdater: %s", Code: ErrInitNSUpdate})
+	}
 
 	result = &Bind9Manager{
 		DNSRecords: diskv.New(diskv.Options{
-			BasePath:     BasePath,
+			BasePath:     basePath,
 			Transform:    func(s string) []string { return []string{} },
 			CacheSizeMax: 1024 * 1024,
 		}),
+		BasePath:     basePath,
 		TTL:          3600,
 		RemovalDelay: 10 * time.Minute,
-		NSUpdate:     nsu,
+		Door:         new(sync.RWMutex),
+		DNSUpdater:   dnsupdater,
 	}
 
 	// get ttl from env
@@ -52,14 +60,32 @@ func New() (result *Bind9Manager) {
 
 // GetDNSRecords retrieves all the dns records being managed
 func (m *Bind9Manager) GetDNSRecords() ([]hookTypes.DNSRecord, error) {
+	m.Door.RLock()
+	defer m.Door.RUnlock()
+
 	toReturn := []hookTypes.DNSRecord{}
-	// TODO: navigate data subfolders
+
+	err := filepath.Walk(m.BasePath, func(path string, info os.FileInfo, err error) error {
+		if strings.HasSuffix(path, Extension) {
+			r, _ := m.GetDNSRecord(m.getRecordName(info.Name()))
+			toReturn = append(toReturn, *r)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("Unable to read the files of the %v folder. Err: %v", m.BasePath, err)
+	}
+
 	return toReturn, nil
 }
 
 // GetDNSRecord retrieves the dns record identified by name
 func (m *Bind9Manager) GetDNSRecord(name string) (*hookTypes.DNSRecord, error) {
-	r, _ := m.DNSRecords.Read(name)
+	m.Door.RLock()
+	defer m.Door.RUnlock()
+
+	r, _ := m.DNSRecords.Read(m.getRecordFileName(name))
 	toReturn := &hookTypes.DNSRecord{}
 	err := json.Unmarshal(r, toReturn)
 	if err == nil {
@@ -70,11 +96,14 @@ func (m *Bind9Manager) GetDNSRecord(name string) (*hookTypes.DNSRecord, error) {
 
 // AddDNSRecord adds a new DNS record
 func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (bool, error) {
-	succ, err := m.NSUpdate.AddRR(record.Name, record.Type, record.Value, m.TTL)
+	succ, err := m.DNSUpdater.AddRR(record.Name, record.Type, record.Value, m.TTL)
 	if succ {
 		r, _ := json.Marshal(record)
-		m.DNSRecords.Write(record.Name, r)
 
+		m.Door.Lock()
+		defer m.Door.Unlock()
+
+		m.DNSRecords.Write(m.getRecordFileName(record.Name), r)
 		return true, nil
 	}
 	return false, err

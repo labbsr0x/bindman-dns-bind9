@@ -1,10 +1,20 @@
 package main
 
 import (
+	"os"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/labbsr0x/bindman-dns-bind9/src/manager"
+	"github.com/labbsr0x/bindman-dns-bind9/src/nsupdate"
 	"github.com/labbsr0x/bindman-dns-webhook/src/hook"
 )
 
 func main() {
-	hook.Initialize(manager.New())
+	basePath := "/data"
+	nsu, err := nsupdate.New(basePath)
+	if err != nil {
+		logrus.Errorf("An error ocurred while setting up the DNS Manager: %v", err)
+		os.Exit(manager.ErrInitNSUpdate)
+	}
+	hook.Initialize(manager.New(nsu, basePath))
 }

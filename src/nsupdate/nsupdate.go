@@ -23,6 +23,12 @@ type NSUpdate struct {
 	Debug    bool
 }
 
+// DNSUpdater defines an interface to communicate with DNS Server via nsupdate commands
+type DNSUpdater interface {
+	RemoveRR(name, recordType string) (bool, error)
+	AddRR(name, recordType, value string, ttl int) (success bool, err error)
+}
+
 // New constructs a new NSUpdate instance from environment variables
 func New(basePath string) (result *NSUpdate, err error) {
 	mode := strings.Trim(os.Getenv(BINDMAN_MODE), " ")
