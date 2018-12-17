@@ -1,4 +1,5 @@
 # Bindman DNS
+![Build Status](https://travis-ci.com/labbsr0x/bindman-dns-bind9.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/labbsr0x/bindman-dns-bind9)](https://goreportcard.com/report/github.com/labbsr0x/bindman-dns-bind9)
 
 This repository defines the component that manages Bind9 DNS Server instancies.
