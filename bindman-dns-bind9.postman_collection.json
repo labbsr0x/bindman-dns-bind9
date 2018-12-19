@@ -38,7 +38,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:7070/records/hello.test.com",
+					"raw": "http://localhost:7070/records/hello.test.com/A",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -46,7 +46,8 @@
 					"port": "7070",
 					"path": [
 						"records",
-						"hello.test.com"
+						"hello.test.com",
+						"A"
 					]
 				}
 			},
@@ -90,7 +91,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:7070/records/hello.test.com",
+					"raw": "http://localhost:7070/records/hello.test.com/A",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -98,7 +99,8 @@
 					"port": "7070",
 					"path": [
 						"records",
-						"hello.test.com"
+						"hello.test.com",
+						"A"
 					]
 				}
 			},
