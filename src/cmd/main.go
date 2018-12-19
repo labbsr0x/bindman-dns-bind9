@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/labbsr0x/bindman-dns-bind9/src/manager"
 	"github.com/labbsr0x/bindman-dns-bind9/src/nsupdate"
 	"github.com/labbsr0x/bindman-dns-webhook/src/hook"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
