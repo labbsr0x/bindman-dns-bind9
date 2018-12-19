@@ -41,9 +41,9 @@ func TestAddDNSRecordAndGetAndList(t *testing.T) {
 	m, _, rs := initManagerWithNRecords(1, t)
 
 	// test get
-	recordGet, err := m.GetDNSRecord(rs[0].Name)
+	recordGet, err := m.GetDNSRecord(rs[0].Name, rs[0].Type)
 	if recordGet == nil || err != nil {
-		t.Errorf("Expecting the get of the record '%v' to succeed. Got result '%v' and err '%v'", rs[0].Name, recordGet, err)
+		t.Errorf("Expecting the get of the record '%v' and type '%v' to succeed. Got result '%v' and err '%v'", rs[0].Name, rs[0].Type, recordGet, err)
 	}
 
 	if recordGet != nil && (recordGet.Name != rs[0].Name || recordGet.Value != rs[0].Value || recordGet.Type != rs[0].Type) {
@@ -71,7 +71,7 @@ func TestDelayRemove(t *testing.T) {
 
 	m.RemovalDelay = 2 * time.Second
 	// rest remove
-	result, err := m.RemoveDNSRecord("test0.test.com")
+	result, err := m.RemoveDNSRecord("test0.test.com", "A")
 	if !result || err != nil {
 		t.Errorf("Expecting removal of the record '%v' to succeed. Got result '%v' and err '%v'", "test0.test.com", result, err)
 	}
@@ -82,7 +82,7 @@ func TestDelayRemove(t *testing.T) {
 
 	time.Sleep(3 * time.Second)
 
-	r, _ := m.GetDNSRecord(rs[0].Name)
+	r, _ := m.GetDNSRecord(rs[0].Name, rs[0].Type)
 	if r != nil {
 		t.Errorf("Expecting the removal of the file record to succeed. Got the record '%v' instead.", r)
 	}
@@ -95,8 +95,8 @@ func TestDelayRemove(t *testing.T) {
 func TestGetRecordFileName(t *testing.T) {
 	m, _, _ := initManagerWithNRecords(0, t)
 
-	f := m.getRecordFileName("teste")
-	e := fmt.Sprintf("teste" + Extension)
+	f := m.getRecordFileName("teste", "A")
+	e := fmt.Sprintf("teste.A." + Extension)
 	if f != e {
 		t.Errorf("Expecting teste%v; got %v", e, f)
 	}
@@ -105,10 +105,14 @@ func TestGetRecordFileName(t *testing.T) {
 func TestGetRecordName(t *testing.T) {
 	m, _, _ := initManagerWithNRecords(0, t)
 
-	f := m.getRecordName("teste.bindman")
+	name, recordType := m.getRecordNameAndType("teste.A.bindman")
 	e := "teste"
-	if f != e {
-		t.Errorf("Expecting %v; got %v", e, f)
+	if name != e {
+		t.Errorf("Expecting %v; got %v", e, name)
+	}
+	e = "A"
+	if recordType != e {
+		t.Errorf("Expecting %v; got %v", e, recordType)
 	}
 }
 
@@ -147,5 +151,9 @@ func (mnsu *MockDNSUpdater) RemoveRR(name, recordType string) (bool, error) {
 }
 
 func (mnsu *MockDNSUpdater) AddRR(name, recordType, value string, ttl int) (bool, error) {
+	return mnsu.Result, mnsu.Error
+}
+
+func (mnsu *MockDNSUpdater) UpdateRR(record hookTypes.DNSRecord, ttl int) (bool, error) {
 	return mnsu.Result, mnsu.Error
 }

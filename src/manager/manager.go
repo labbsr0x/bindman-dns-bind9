@@ -2,7 +2,6 @@ package manager
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -10,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/labbsr0x/bindman-dns-bind9/src/nsupdate"
 	hookTypes "github.com/labbsr0x/bindman-dns-webhook/src/types"
 	"github.com/peterbourgon/diskv"
+	"github.com/sirupsen/logrus"
 )
 
 // Bind9Manager holds the information for managing a bind9 dns server
@@ -29,7 +28,7 @@ type Bind9Manager struct {
 // New creates a new Bind9Manager
 func New(dnsupdater nsupdate.DNSUpdater, basePath string) (result *Bind9Manager) {
 	if dnsupdater == nil {
-		hookTypes.Panic(hookTypes.Error{Message: "Not possible to start the Bind9Manager; something went wrong while setting up DNSUpdater: %s", Code: ErrInitNSUpdate})
+		hookTypes.Panic(hookTypes.Error{Message: "Not possible to start the Bind9Manager; Bind9Manager expects a valid non-nil DNSUpdater", Code: ErrInitNSUpdate})
 	}
 
 	result = &Bind9Manager{
@@ -59,59 +58,57 @@ func New(dnsupdater nsupdate.DNSUpdater, basePath string) (result *Bind9Manager)
 }
 
 // GetDNSRecords retrieves all the dns records being managed
-func (m *Bind9Manager) GetDNSRecords() ([]hookTypes.DNSRecord, error) {
+func (m *Bind9Manager) GetDNSRecords() (records []hookTypes.DNSRecord, err error) {
 	m.Door.RLock()
 	defer m.Door.RUnlock()
 
-	toReturn := []hookTypes.DNSRecord{}
-
-	err := filepath.Walk(m.BasePath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(m.BasePath, func(path string, info os.FileInfo, errr error) error {
 		if strings.HasSuffix(path, Extension) {
-			r, _ := m.GetDNSRecord(m.getRecordName(info.Name()))
-			toReturn = append(toReturn, *r)
+			r, _ := m.GetDNSRecord(m.getRecordNameAndType(info.Name()))
+			records = append(records, *r)
 		}
 		return nil
 	})
 
-	if err != nil {
-		return nil, fmt.Errorf("Unable to read the files of the %v folder. Err: %v", m.BasePath, err)
-	}
-
-	return toReturn, nil
+	return
 }
 
 // GetDNSRecord retrieves the dns record identified by name
-func (m *Bind9Manager) GetDNSRecord(name string) (*hookTypes.DNSRecord, error) {
+func (m *Bind9Manager) GetDNSRecord(name, recordType string) (record *hookTypes.DNSRecord, err error) {
 	m.Door.RLock()
 	defer m.Door.RUnlock()
 
-	r, _ := m.DNSRecords.Read(m.getRecordFileName(name))
-	toReturn := &hookTypes.DNSRecord{}
-	err := json.Unmarshal(r, toReturn)
+	var r []byte
+	r, err = m.DNSRecords.Read(m.getRecordFileName(name, recordType))
 	if err == nil {
-		return toReturn, nil
+		err = json.Unmarshal(r, &record)
 	}
-	return nil, err
+	return
 }
 
 // AddDNSRecord adds a new DNS record
-func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (bool, error) {
-	succ, err := m.DNSUpdater.AddRR(record.Name, record.Type, record.Value, m.TTL)
+func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (succ bool, err error) {
+	succ, err = m.DNSUpdater.AddRR(record.Name, record.Type, record.Value, m.TTL)
 	if succ {
-		r, _ := json.Marshal(record)
-
-		m.Door.Lock()
-		defer m.Door.Unlock()
-
-		m.DNSRecords.Write(m.getRecordFileName(record.Name), r)
-		return true, nil
+		err = m.saveRecord(record)
+		succ = err == nil
 	}
-	return false, err
+	return
+}
+
+// UpdateDNSRecord updates an existing dns record
+func (m *Bind9Manager) UpdateDNSRecord(record hookTypes.DNSRecord) (succ bool, err error) {
+	succ, err = m.DNSUpdater.UpdateRR(record, m.TTL)
+	if succ {
+		err = m.saveRecord(record)
+		succ = err == nil
+	}
+	return
 }
 
 // RemoveDNSRecord removes a DNS record
-func (m *Bind9Manager) RemoveDNSRecord(name string) (bool, error) {
-	go m.delayRemove(name)
-	logrus.Infof("%s scheduled to be removed in %v seconds", name, m.RemovalDelay)
+func (m *Bind9Manager) RemoveDNSRecord(name, recordType string) (bool, error) {
+	go m.delayRemove(name, recordType)
+	logrus.Infof("Record '%s' with type '%v' scheduled to be removed in %v seconds", name, recordType, m.RemovalDelay)
 	return true, nil
 }
