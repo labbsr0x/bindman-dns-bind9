@@ -66,7 +66,29 @@ func (nsu *NSUpdate) getSubdomainName(name string) string {
 }
 
 // checkName checks if the name is in the expected format: subdomain.zone
-func (nsu *NSUpdate) checkName(name string) (bool, error) {
+func (nsu *NSUpdate) checkName(name string) (matched bool, err error) {
 	m := fmt.Sprintf(".*\\.%s", nsu.Zone)
-	return regexp.MatchString(m, name)
+	matched, err = regexp.MatchString(m, name)
+	if err != nil {
+		err = fmt.Errorf("The record name '%s' is not allowed. Must obay the following pattern: <subdomain>.%s", name, nsu.Zone)
+	}
+	return
+}
+
+// buildAddCommand builds a nsupdate add command
+func (nsu *NSUpdate) buildAddCommand(recordName, recordType, value string, ttl int) (cmd string, err error) {
+	_, err = nsu.checkName(recordName)
+	if err == nil {
+		cmd = fmt.Sprintf("update add %s.%s. %d %s %s\n", nsu.getSubdomainName(recordName), nsu.Zone, ttl, recordType, value)
+	}
+	return
+}
+
+// buildDeleteCommand builds a nsupdate delete command
+func (nsu *NSUpdate) buildDeleteCommand(recordName, recordType string) (cmd string, err error) {
+	_, err = nsu.checkName(recordName)
+	if err == nil {
+		cmd = fmt.Sprintf("update delete %s.%s. %s\n", nsu.getSubdomainName(recordName), nsu.Zone, recordType)
+	}
+	return
 }
