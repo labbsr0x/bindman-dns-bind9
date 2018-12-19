@@ -9,8 +9,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/google/uuid"
+	hookTypes "github.com/labbsr0x/bindman-dns-webhook/src/types"
+	"github.com/sirupsen/logrus"
 )
 
 // NSUpdate holds the information necessary to successfully run nsupdate requests
@@ -25,8 +26,9 @@ type NSUpdate struct {
 
 // DNSUpdater defines an interface to communicate with DNS Server via nsupdate commands
 type DNSUpdater interface {
-	RemoveRR(name, recordType string) (bool, error)
+	RemoveRR(name, recordType string) (success bool, err error)
 	AddRR(name, recordType, value string, ttl int) (success bool, err error)
+	UpdateRR(record hookTypes.DNSRecord, ttl int) (success bool, err error)
 }
 
 // New constructs a new NSUpdate instance from environment variables
@@ -44,26 +46,39 @@ func New(basePath string) (result *NSUpdate, err error) {
 	if succ, errs := result.check(); !succ {
 		err = fmt.Errorf("Errors encountered: %v", strings.Join(errs, ", "))
 	}
-
 	return
 }
 
 // RemoveRR removes a Resource Record
-func (nsu *NSUpdate) RemoveRR(name, recordType string) (bool, error) {
-	cmd := fmt.Sprintf("update delete %s.%s. %s\n", nsu.getSubdomainName(name), nsu.Zone, recordType)
-	logrus.Infof("cmd to be executed: %s", cmd)
-	return nsu.ExecuteCommand(cmd)
+func (nsu *NSUpdate) RemoveRR(name, recordType string) (succ bool, err error) {
+	cmd, err := nsu.buildDeleteCommand(name, recordType)
+	if err == nil {
+		logrus.Infof("cmd to be executed: %s", cmd)
+		succ, err = nsu.ExecuteCommand(cmd)
+	}
+	return
 }
 
 // AddRR adds a Resource Record
-func (nsu *NSUpdate) AddRR(name, recordType, value string, ttl int) (success bool, err error) {
-	success, err = nsu.checkName(name)
-	if success {
-		cmd := fmt.Sprintf("update add %s.%s. %d %s %s\n", nsu.getSubdomainName(name), nsu.Zone, ttl, recordType, value)
+func (nsu *NSUpdate) AddRR(name, recordType, value string, ttl int) (succ bool, err error) {
+	cmd, err := nsu.buildAddCommand(name, recordType, value, ttl)
+	if err == nil {
 		logrus.Infof("cmd to be executed: %s", cmd)
-		success, err = nsu.ExecuteCommand(cmd)
-	} else {
-		err = fmt.Errorf("The record name '%s' is not allowed. Must be of the following format: <subdomain>.%s", name, nsu.Zone)
+		succ, err = nsu.ExecuteCommand(cmd)
+	}
+	return
+}
+
+// UpdateRR updates a DNS Resource Record
+func (nsu *NSUpdate) UpdateRR(record hookTypes.DNSRecord, ttl int) (succ bool, err error) {
+	deleteCmd, err := nsu.buildDeleteCommand(record.Name, record.Type)
+	if err == nil {
+		addCmd, err := nsu.buildAddCommand(record.Name, record.Type, record.Value, ttl)
+		if err == nil {
+			cmd := fmt.Sprintf("%v\n%v", deleteCmd, addCmd)
+			logrus.Infof("cmd to be executed: %s", cmd)
+			succ, err = nsu.ExecuteCommand(cmd)
+		}
 	}
 	return
 }
@@ -115,6 +130,5 @@ func (nsu *NSUpdate) ExecCmdFile(filePath string) (success bool, err error) {
 	} else {
 		err = fmt.Errorf("%s: %s", err.Error(), out.String())
 	}
-
 	return
 }
