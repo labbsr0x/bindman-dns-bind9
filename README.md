@@ -30,3 +30,14 @@ A store of records being managed is needed. Hence, a `/data` volume must be mapp
 
 7. `optional` **BINDMAN_MODE**: let the runtime know if the DEBUG mode is activated; useful for debugging the intermediary files created for sending `nsupdate` commands. Possible values: `DEBUG|PROD`. Empty defaults to `PROD`.
 
+# Secure communication
+
+On the `/keys` folder of the `bind` service, you will find the keys that enable secure communication between the manager and the Bind9 Server for the `test.com` zone.
+
+For now, we support only `dnssec-keygen` generated keys. We used the following commands for the `test.com` zone:
+
+```
+dnssec-keygen -a HMAC-MD5 -b 512 -n HOST test.com
+```
+
+[Go here](http://www.firewall.cx/linux-knowledgebase-tutorials/system-and-network-services/831-linux-bind-ipadd-data-file.html) to understand a bit more about how to properly configure your BIND DNS server.
