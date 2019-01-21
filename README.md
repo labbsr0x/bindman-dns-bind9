@@ -2,7 +2,7 @@
 ![Build Status](https://travis-ci.com/labbsr0x/bindman-dns-bind9.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/labbsr0x/bindman-dns-bind9)](https://goreportcard.com/report/github.com/labbsr0x/bindman-dns-bind9)
 
-This repository defines the component that manages Bind9 DNS Server instancies.
+This repository defines the component that manages Bind9 DNS Server instances.
 
 NSUpdate commands get dispatched from REST API calls defined in the bindman webhook project [Bindman DNS Webhook](https://github.com/labbsr0x/sandman-dns-webhook).
 
@@ -26,7 +26,7 @@ A store of records being managed is needed. Hence, a `/data` volume must be mapp
 
 5. `optional` **BINDMAN_DNS_TTL**: the dns recording rule expiration time (or time-to-live). By default, the TTL is **3600 seconds**.
 
-6. `optional` **BINDMAN_DNS_REMOVAL_DELAY**: the delay in minutes to be applied to the removal of an DNS entry. The default is 1 minutes. This is to guarantee that in fact the removal should be processed.
+6. `optional` **BINDMAN_DNS_REMOVAL_DELAY**: the delay in minutes to be applied to the removal of an DNS entry. The default is 10 minutes. This is to guarantee that in fact the removal should be processed.
 
 7. `optional` **BINDMAN_MODE**: let the runtime know if the DEBUG mode is activated; useful for debugging the intermediary files created for sending `nsupdate` commands. Possible values: `DEBUG|PROD`. Empty defaults to `PROD`.
 
