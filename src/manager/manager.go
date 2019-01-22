@@ -2,9 +2,9 @@ package manager
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -15,46 +15,41 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type Options struct {
+	TTL          time.Duration
+	RemovalDelay time.Duration
+}
+
 // Bind9Manager holds the information for managing a bind9 dns server
 type Bind9Manager struct {
-	BasePath     string
-	DNSRecords   *diskv.Diskv
-	TTL          int
-	RemovalDelay time.Duration
-	Door         *sync.RWMutex
-	DNSUpdater   nsupdate.DNSUpdater
+	*Options
+	BasePath   string
+	DNSRecords *diskv.Diskv
+	Door       *sync.RWMutex
+	DNSUpdater nsupdate.DNSUpdater
 }
 
 // New creates a new Bind9Manager
-func New(dnsupdater nsupdate.DNSUpdater, basePath string) (result *Bind9Manager) {
+func New(options *Options, dnsupdater nsupdate.DNSUpdater, basePath string) (*Bind9Manager, error) {
+	if options == nil {
+		return nil, errors.New("not possible to start the Bind9Manager; Bind9Manager expects a valid non-nil 'options'")
+	}
 	if dnsupdater == nil {
-		hookTypes.Panic(hookTypes.Error{Message: "Not possible to start the Bind9Manager; Bind9Manager expects a valid non-nil DNSUpdater", Code: ErrInitNSUpdate})
+		return nil, errors.New("not possible to start the Bind9Manager; Bind9Manager expects a valid non-nil DNSUpdater")
 	}
 
-	result = &Bind9Manager{
+	result := &Bind9Manager{
 		DNSRecords: diskv.New(diskv.Options{
 			BasePath:     basePath,
 			Transform:    func(s string) []string { return []string{} },
 			CacheSizeMax: 1024 * 1024,
 		}),
-		BasePath:     basePath,
-		TTL:          3600,
-		RemovalDelay: 10 * time.Minute,
-		Door:         new(sync.RWMutex),
-		DNSUpdater:   dnsupdater,
+		Options:    options,
+		BasePath:   basePath,
+		Door:       new(sync.RWMutex),
+		DNSUpdater: dnsupdater,
 	}
-
-	// get ttl from env
-	if ttl, err := strconv.Atoi(strings.Trim(os.Getenv(SANDMAN_DNS_TTL), " ")); err == nil {
-		result.TTL = ttl
-	}
-
-	// get removal delay from env
-	if r, err := strconv.Atoi(strings.Trim(os.Getenv(SANDMAN_DNS_REMOVAL_DELAY), " ")); err == nil {
-		result.RemovalDelay = time.Duration(r) * time.Minute
-	}
-
-	return result
+	return result, nil
 }
 
 // GetDNSRecords retrieves all the dns records being managed

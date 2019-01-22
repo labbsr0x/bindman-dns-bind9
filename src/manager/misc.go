@@ -16,12 +16,6 @@ const (
 )
 
 const (
-	// SANDMAN_DNS_TTL environment variable identifier for the time-to-live to be applied
-	SANDMAN_DNS_TTL = "BINDMAN_DNS_TTL"
-
-	// SANDMAN_DNS_REMOVAL_DELAY environment variable identifier for the removal delay time to be applied
-	SANDMAN_DNS_REMOVAL_DELAY = "BINDMAN_DNS_REMOVAL_DELAY"
-
 	// Extension sets the extension of the files holding the records infos
 	Extension = "bindman"
 )
