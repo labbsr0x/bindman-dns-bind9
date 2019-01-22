@@ -5,23 +5,18 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const (
 	// BINDMAN_NAMESERVER_ADDRESS environment variable identifier for the nameserver address
 	BINDMAN_NAMESERVER_ADDRESS = "BINDMAN_NAMESERVER_ADDRESS"
 
-	// BINDMAN_NAMESERVER_PORT environment variable identifier for the nameserver port
-	BINDMAN_NAMESERVER_PORT = "BINDMAN_NAMESERVER_PORT"
-
 	// BINDMAN_NAMESERVER_KEYFILE environment variable identifier for the nameserver key name
 	BINDMAN_NAMESERVER_KEYFILE = "BINDMAN_NAMESERVER_KEYFILE"
 
 	// BINDMAN_NAMESERVER_ZONE environment variable identifier for the zone to be managed
 	BINDMAN_NAMESERVER_ZONE = "BINDMAN_NAMESERVER_ZONE"
-
-	// BINDMAN_MODE defines the execution mode of bindman (DEBUG|PROD); defaults to PROD
-	BINDMAN_MODE = "BINDMAN_MODE"
 )
 
 // check tests if a NSUpdate setup is ok; returns a set of error strings in case something is not right
@@ -76,7 +71,7 @@ func (nsu *NSUpdate) checkName(name string) (matched bool, err error) {
 }
 
 // buildAddCommand builds a nsupdate add command
-func (nsu *NSUpdate) buildAddCommand(recordName, recordType, value string, ttl int) (cmd string, err error) {
+func (nsu *NSUpdate) buildAddCommand(recordName, recordType, value string, ttl time.Duration) (cmd string, err error) {
 	_, err = nsu.checkName(recordName)
 	if err == nil {
 		cmd = fmt.Sprintf("update add %s.%s. %d %s %s\n", nsu.getSubdomainName(recordName), nsu.Zone, ttl, recordType, value)

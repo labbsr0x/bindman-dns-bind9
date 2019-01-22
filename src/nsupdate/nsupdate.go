@@ -8,14 +8,14 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	hookTypes "github.com/labbsr0x/bindman-dns-webhook/src/types"
 	"github.com/sirupsen/logrus"
 )
 
-// NSUpdate holds the information necessary to successfully run nsupdate requests
-type NSUpdate struct {
+type Options struct {
 	Server   string
 	Port     string
 	KeyFile  string
@@ -24,24 +24,22 @@ type NSUpdate struct {
 	Debug    bool
 }
 
+// NSUpdate holds the information necessary to successfully run nsupdate requests
+type NSUpdate struct {
+	*Options
+}
+
 // DNSUpdater defines an interface to communicate with DNS Server via nsupdate commands
 type DNSUpdater interface {
 	RemoveRR(name, recordType string) (success bool, err error)
-	AddRR(name, recordType, value string, ttl int) (success bool, err error)
-	UpdateRR(record hookTypes.DNSRecord, ttl int) (success bool, err error)
+	AddRR(name, recordType, value string, ttl time.Duration) (success bool, err error)
+	UpdateRR(record hookTypes.DNSRecord, ttl time.Duration) (success bool, err error)
 }
 
 // New constructs a new NSUpdate instance from environment variables
-func New(basePath string) (result *NSUpdate, err error) {
-	mode := strings.Trim(os.Getenv(BINDMAN_MODE), " ")
-	result = &NSUpdate{
-		Server:   strings.Trim(os.Getenv(BINDMAN_NAMESERVER_ADDRESS), " "),
-		Port:     strings.Trim(os.Getenv(BINDMAN_NAMESERVER_PORT), " "),
-		KeyFile:  strings.Trim(os.Getenv(BINDMAN_NAMESERVER_KEYFILE), " "),
-		Zone:     strings.Trim(os.Getenv(BINDMAN_NAMESERVER_ZONE), " "),
-		BasePath: basePath,
-		Debug:    mode == "DEBUG",
-	}
+func New(options *Options, basePath string) (result *NSUpdate, err error) {
+	options.BasePath = basePath
+	result = &NSUpdate{options}
 
 	if succ, errs := result.check(); !succ {
 		err = fmt.Errorf("Errors encountered: %v", strings.Join(errs, ", "))
@@ -60,7 +58,7 @@ func (nsu *NSUpdate) RemoveRR(name, recordType string) (succ bool, err error) {
 }
 
 // AddRR adds a Resource Record
-func (nsu *NSUpdate) AddRR(name, recordType, value string, ttl int) (succ bool, err error) {
+func (nsu *NSUpdate) AddRR(name, recordType, value string, ttl time.Duration) (succ bool, err error) {
 	cmd, err := nsu.buildAddCommand(name, recordType, value, ttl)
 	if err == nil {
 		logrus.Infof("cmd to be executed: %s", cmd)
@@ -70,7 +68,7 @@ func (nsu *NSUpdate) AddRR(name, recordType, value string, ttl int) (succ bool, 
 }
 
 // UpdateRR updates a DNS Resource Record
-func (nsu *NSUpdate) UpdateRR(record hookTypes.DNSRecord, ttl int) (succ bool, err error) {
+func (nsu *NSUpdate) UpdateRR(record hookTypes.DNSRecord, ttl time.Duration) (succ bool, err error) {
 	deleteCmd, err := nsu.buildDeleteCommand(record.Name, record.Type)
 	if err == nil {
 		addCmd, err := nsu.buildAddCommand(record.Name, record.Type, record.Value, ttl)
@@ -101,7 +99,7 @@ func (nsu *NSUpdate) ExecuteCommand(cmd string) (success bool, err error) {
 
 // BuildCmdFile creates an nsupdate cmd file
 func (nsu *NSUpdate) BuildCmdFile(cmd string) (fileName string, err error) {
-	f, err := ioutil.TempFile(os.TempDir(), "sandman"+uuid.New().String())
+	f, err := ioutil.TempFile(os.TempDir(), "bindman-"+uuid.New().String())
 	if err == nil {
 		writer := bufio.NewWriter(f)
 
