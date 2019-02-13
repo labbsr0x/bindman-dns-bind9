@@ -11,11 +11,6 @@ import (
 )
 
 const (
-	// ErrInitNSUpdate error code for problems while setting up NSUpdate
-	ErrInitNSUpdate = iota
-)
-
-const (
 	// Extension sets the extension of the files holding the records infos
 	Extension = "bindman"
 )
