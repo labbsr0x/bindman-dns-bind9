@@ -3,38 +3,27 @@ FROM golang:1.11-alpine as builder
 
 RUN apk add --no-cache git mercurial 
 
-ENV BUILD_PATH=$GOPATH/src/github.com/labbsr0x/bindman-dns-bind9/src
+ENV p $GOPATH/src/github.com/labbsr0x/bindman-dns-bind9
 
-RUN mkdir -p ${BUILD_PATH}
-WORKDIR ${BUILD_PATH}
-
-ADD ./src ./
+ADD ./ ${p}
+WORKDIR ${p}
 RUN go get -v ./...
 
-WORKDIR ${BUILD_PATH}/cmd
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o /manager .
+RUN GIT_COMMIT=$(git rev-parse --short HEAD 2> /dev/null || true) \
+ && BUILDTIME=$(TZ=UTC date -u '+%Y-%m-%dT%H:%M:%SZ') \
+ && VERSION=$(git describe --abbrev=0 --tags 2> /dev/null || true) \
+ && CGO_ENABLED=0 GOOS=linux go build --ldflags "-s -w \
+    -X github.com/labbsr0x/bindman-dns-bind9/src/version.Version=${VERSION:-unknow-version} \
+    -X github.com/labbsr0x/bindman-dns-bind9/src/version.GitCommit=${GIT_COMMIT} \
+    -X github.com/labbsr0x/bindman-dns-bind9/src/version.BuildTime=${BUILDTIME}" \
+    -a -installsuffix cgo -o /bindman-dns-manager src/main.go
 
 # PKG
-FROM alpine:latest
-
-RUN apk add --no-cache --update \
-  curl \
-  wget \
-  nmap \
-  bind-tools
-
-COPY --from=builder /manager /
+FROM scratch
 
 VOLUME [ "/data" ]
+COPY --from=builder /bindman-dns-manager /go/bin/
 
-EXPOSE 7070
-
-ENV BINDMAN_NAMESERVER_ADDRESS ""
-ENV BINDMAN_NAMESERVER_PORT ""
-ENV BINDMAN_NAMESERVER_KEYFILE ""
-ENV BINDMAN_NAMESERVER_ZONE ""
-ENV BINDMAN_MODE ""
-
-ENTRYPOINT [ "./manager" ]
+ENTRYPOINT [ "/go/bin/bindman-dns-manager" ]
 
 CMD [ "serve" ]
