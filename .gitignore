@@ -13,3 +13,9 @@
 
 # Bindman test files
 .bindman
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
