@@ -15,27 +15,27 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Options struct {
+type Builder struct {
 	TTL          time.Duration
 	RemovalDelay time.Duration
 }
 
 // Bind9Manager holds the information for managing a bind9 dns server
 type Bind9Manager struct {
-	*Options
-	BasePath   string
+	*Builder
 	DNSRecords *diskv.Diskv
 	Door       *sync.RWMutex
 	DNSUpdater nsupdate.DNSUpdater
 }
 
 // New creates a new Bind9Manager
-func New(options *Options, dnsupdater nsupdate.DNSUpdater, basePath string) (*Bind9Manager, error) {
-	if options == nil {
-		return nil, errors.New("not possible to start the Bind9Manager; Bind9Manager expects a valid non-nil 'options'")
-	}
+func (b *Builder) New(dnsupdater nsupdate.DNSUpdater, basePath string) (*Bind9Manager, error) {
 	if dnsupdater == nil {
 		return nil, errors.New("not possible to start the Bind9Manager; Bind9Manager expects a valid non-nil DNSUpdater")
+	}
+
+	if strings.TrimSpace(basePath) == "" {
+		return nil, errors.New("not possible to start the Bind9Manager; Bind9Manager expects a non-empty basePath")
 	}
 
 	result := &Bind9Manager{
@@ -44,8 +44,7 @@ func New(options *Options, dnsupdater nsupdate.DNSUpdater, basePath string) (*Bi
 			Transform:    func(s string) []string { return []string{} },
 			CacheSizeMax: 1024 * 1024,
 		}),
-		Options:    options,
-		BasePath:   basePath,
+		Builder:    b,
 		Door:       new(sync.RWMutex),
 		DNSUpdater: dnsupdater,
 	}
@@ -57,7 +56,7 @@ func (m *Bind9Manager) GetDNSRecords() (records []hookTypes.DNSRecord, err error
 	m.Door.RLock()
 	defer m.Door.RUnlock()
 
-	err = filepath.Walk(m.BasePath, func(path string, info os.FileInfo, errr error) error {
+	err = filepath.Walk(m.DNSRecords.BasePath, func(path string, info os.FileInfo, errr error) error {
 		if strings.HasSuffix(path, Extension) {
 			r, _ := m.GetDNSRecord(m.getRecordNameAndType(info.Name()))
 			records = append(records, *r)

@@ -18,14 +18,14 @@ var serveCmd = &cobra.Command{
 	RunE:  runE,
 }
 
-func runE(cmd *cobra.Command, args []string) error {
-	nsupdateBuilder := new(nsupdate.Options).InitFromViper(viper.GetViper())
-	managerBuilder := new(manager.Options).InitFromViper(viper.GetViper())
-	nsu, err := nsupdate.New(nsupdateBuilder, basePath)
+func runE(_ *cobra.Command, _ []string) error {
+	nsupdateBuilder := new(nsupdate.Builder).InitFromViper(viper.GetViper())
+	managerBuilder := new(manager.Builder).InitFromViper(viper.GetViper())
+	nsu, err := nsupdateBuilder.New(basePath)
 	if err != nil {
 		return fmt.Errorf("an error occurred while setting up the DNS Manager: %v", err)
 	}
-	bind9Manager, err := manager.New(managerBuilder, nsu, basePath)
+	bind9Manager, err := managerBuilder.New(nsu, basePath)
 	if err != nil {
 		return err
 	}

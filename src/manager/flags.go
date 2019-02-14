@@ -20,7 +20,7 @@ func AddFlags(flags *pflag.FlagSet) {
 }
 
 // InitFromViper initializes Options with properties retrieved from Viper.
-func (b *Options) InitFromViper(v *viper.Viper) *Options {
+func (b *Builder) InitFromViper(v *viper.Viper) *Builder {
 	b.TTL = v.GetDuration(dnsTtl)
 	b.RemovalDelay = v.GetDuration(dnsRemovalDelay)
 	return b

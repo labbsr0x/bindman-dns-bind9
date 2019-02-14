@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+	"os"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -9,32 +10,30 @@ import (
 	hookTypes "github.com/labbsr0x/bindman-dns-webhook/src/types"
 )
 
+const basePath = "./data"
+
+func TestMain(m *testing.M) {
+	exitCode := m.Run()
+	os.Remove(basePath)
+	os.Exit(exitCode)
+}
+
 func TestNew(t *testing.T) {
-	func() {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("manager.New should not accept a nil DNSUpdater")
-			}
-		}()
-		New(nil, "")
-	}()
+	if _, err := new(Builder).New(nil, ""); err == nil || err.Error() != "not possible to start the Bind9Manager; Bind9Manager expects a valid non-nil DNSUpdater" {
+		t.Error("builder.New should return error with message 'not possible to start the Bind9Manager; Bind9Manager expects a valid non-nil DNSUpdater' in face of a non-valid DNSUpdater")
+	}
 
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				t.Errorf("manager.New should not panic in face of a valid DNSUpdater and a valid basePath")
-			}
-		}()
-		manager := New(new(MockDNSUpdater), "./data")
+	if _, err := new(Builder).New(new(MockDNSUpdater), ""); err == nil || err.Error() != "not possible to start the Bind9Manager; Bind9Manager expects a non-empty basePath" {
+		t.Error("builder.New should return error with message 'not possible to start the Bind9Manager; Bind9Manager expects a non-empty basePath' in face of a non-valid basePath")
+	}
 
-		if manager.TTL != 3600 {
-			t.Errorf("Default manager.TTL should be 3600 not %v", manager.TTL)
-		}
-
-		if manager.RemovalDelay != time.Duration(10*time.Minute) {
-			t.Errorf("Default removal delay should be 10 min not %v", manager.RemovalDelay)
-		}
-	}()
+	manager, err := new(Builder).New(new(MockDNSUpdater), basePath)
+	if err != nil {
+		t.Error("manager.New should not return an error in face of a valid DNSUpdater and a valid basePath")
+	}
+	if manager == nil {
+		t.Error("manager.New should return a non-nil Bind9Manager in face of a valid DNSUpdater and a valid basePath")
+	}
 }
 
 func TestAddDNSRecordAndGetAndList(t *testing.T) {
@@ -62,6 +61,44 @@ func TestAddDNSRecordAndGetAndList(t *testing.T) {
 
 	if records[0].Name != rs[0].Name || records[0].Value != rs[0].Value || records[0].Type != rs[0].Type {
 		t.Errorf("Expecting the array entry to be exactly the same as the one added. Got %v", records[0])
+	}
+}
+
+func TestUpdateDNSRecord(t *testing.T) {
+	newValue := "127.0.0.1"
+
+	m, _, rs := initManagerWithNRecords(1, t)
+	record := rs[0]
+	record.Value = newValue
+
+	success, err := m.UpdateDNSRecord(record)
+	if !success || err != nil {
+		t.Errorf("Expecting the update of the record '%v' to succeed. Got result '%v' and err '%v'", record, success, err)
+	}
+
+	// test get
+	recordGet, err := m.GetDNSRecord(record.Name, record.Type)
+	if recordGet == nil || err != nil {
+		t.Errorf("Expecting the get of the record '%v' and type '%v' to succeed. Got result '%v' and err '%v'", record.Name, record.Type, recordGet, err)
+	}
+
+	if recordGet != nil && (recordGet.Name != record.Name || recordGet.Value != record.Value || recordGet.Type != record.Type) {
+		t.Errorf("Expecting the record saved to be equal to the the one added. Got '%v'", recordGet)
+	}
+
+	// test list
+	records, err := m.GetDNSRecords()
+	if records == nil || err != nil {
+		t.Errorf("Expecting the list of records to return successfully. Got result nil and err '%v'", err)
+	}
+
+	if len(records) != 1 {
+		t.Errorf("Expecting the list of records to have exactly one entry. Got %v", len(records))
+	}
+
+	recordRetrievedFromList := records[0]
+	if recordRetrievedFromList.Name != record.Name || recordRetrievedFromList.Value != record.Value || recordRetrievedFromList.Type != record.Type {
+		t.Errorf("Expecting the array entry to be exactly the same as the one updated. Got %v", recordRetrievedFromList)
 	}
 
 }
@@ -119,7 +156,7 @@ func TestGetRecordName(t *testing.T) {
 func initManagerWithNRecords(numberOfRecords int, t *testing.T) (*Bind9Manager, *MockDNSUpdater, []hookTypes.DNSRecord) {
 	updater := new(MockDNSUpdater)
 	updater.Result = true
-	m := New(updater, "./data")
+	m, _ := new(Builder).New(updater, basePath)
 	records := make([]hookTypes.DNSRecord, 0)
 
 	for i := 0; i < numberOfRecords; i++ {
@@ -150,10 +187,10 @@ func (mnsu *MockDNSUpdater) RemoveRR(name, recordType string) (bool, error) {
 	return mnsu.Result, mnsu.Error
 }
 
-func (mnsu *MockDNSUpdater) AddRR(name, recordType, value string, ttl int) (bool, error) {
+func (mnsu *MockDNSUpdater) AddRR(name, recordType, value string, ttl time.Duration) (bool, error) {
 	return mnsu.Result, mnsu.Error
 }
 
-func (mnsu *MockDNSUpdater) UpdateRR(record hookTypes.DNSRecord, ttl int) (bool, error) {
+func (mnsu *MockDNSUpdater) UpdateRR(record hookTypes.DNSRecord, ttl time.Duration) (bool, error) {
 	return mnsu.Result, mnsu.Error
 }

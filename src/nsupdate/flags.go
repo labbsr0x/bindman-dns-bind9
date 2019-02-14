@@ -12,20 +12,20 @@ const (
 	nameServerKeyFile     = nameServerPrefix + "key-file"
 	nameServerZone        = nameServerPrefix + "zone"
 	debug                 = "debug"
-	defaultNameServerPort = 53
+	defaultNameServerPort = "53"
 )
 
-// AddFlags adds flags for Options.
+// AddFlags adds flags for Builder.
 func AddFlags(flags *pflag.FlagSet) {
 	flags.String(nameServerAddress, "", "Address of the nameserver that an instance of a Bindman will manage")
-	flags.Int(nameServerPort, defaultNameServerPort, "Custom port for communication with the nameserver")
+	flags.String(nameServerPort, defaultNameServerPort, "Custom port for communication with the nameserver")
 	flags.String(nameServerKeyFile, "", `Zone key-file name that will be used to authenticate with the nameserver. MUST match the regexp "K.*\.\+157\+.*\.key" and MUST be inside the /data volume`)
 	flags.String(nameServerZone, "", "The name of the zone a bindman-dns-bind9 instance is able to manage")
 	flags.BoolP(debug, "d", false, "The name of the zone a bindman-dns-bind9 instance is able to manage")
 }
 
-// InitFromViper initializes Options with properties retrieved from Viper.
-func (b *Options) InitFromViper(v *viper.Viper) *Options {
+// InitFromViper initializes Builder with properties retrieved from Viper.
+func (b *Builder) InitFromViper(v *viper.Viper) *Builder {
 	b.Server = v.GetString(nameServerAddress)
 	b.Port = v.GetString(nameServerPort)
 	b.KeyFile = v.GetString(nameServerKeyFile)
