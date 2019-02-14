@@ -15,7 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Options struct {
+type Builder struct {
 	Server   string
 	Port     string
 	KeyFile  string
@@ -26,7 +26,7 @@ type Options struct {
 
 // NSUpdate holds the information necessary to successfully run nsupdate requests
 type NSUpdate struct {
-	*Options
+	*Builder
 }
 
 // DNSUpdater defines an interface to communicate with DNS Server via nsupdate commands
@@ -37,9 +37,9 @@ type DNSUpdater interface {
 }
 
 // New constructs a new NSUpdate instance from environment variables
-func New(options *Options, basePath string) (result *NSUpdate, err error) {
-	options.BasePath = basePath
-	result = &NSUpdate{options}
+func (b *Builder) New(basePath string) (result *NSUpdate, err error) {
+	b.BasePath = basePath
+	result = &NSUpdate{b}
 
 	if succ, errs := result.check(); !succ {
 		err = fmt.Errorf("Errors encountered: %v", strings.Join(errs, ", "))

@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -16,12 +17,12 @@ func TestBingFlags(t *testing.T) {
 	_ = v.BindPFlags(command.Flags())
 
 	err := command.ParseFlags([]string{
-		"--dns-ttl=10s",
-		"--dns-removal-delay=10s",
+		fmt.Sprintf("--%s=10s", dnsTtl),
+		fmt.Sprintf("--%s=10s", dnsRemovalDelay),
 	})
 	require.NoError(t, err)
 
-	b := &Options{}
+	b := &Builder{}
 	b.InitFromViper(v)
 
 	assert.Equal(t, time.Second*10, b.TTL)
@@ -34,7 +35,7 @@ func TestDefaultValues(t *testing.T) {
 	AddFlags(command.Flags())
 	_ = v.BindPFlags(command.Flags())
 
-	b := &Options{}
+	b := &Builder{}
 	b.InitFromViper(v)
 
 	assert.Equal(t, defaultDnsTtl, b.TTL)

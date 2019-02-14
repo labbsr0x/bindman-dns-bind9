@@ -10,7 +10,6 @@ import (
 )
 
 // rootCmd represents the base command when called without any sub-commands
-//TODO write a better description
 var rootCmd = &cobra.Command{
 	Use:   "bindman-dns-bind9",
 	Short: "Manages Bind9 DNS Server instances",
