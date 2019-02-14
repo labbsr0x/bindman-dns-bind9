@@ -18,7 +18,7 @@ A store of records being managed is needed. Hence, a `/data` volume must be mapp
 
 1. `mandatory` **BINDMAN_NAMESERVER_ADDRESS**: address of the nameserver that an instance of a Bindman will manage
 
-2. `mandatory` **BINDMAN_NAMESERVER_KEYFILE**: the zone keyfile name that will be used to authenticate with the nameserver. **MUST** match the regexp `K.*\.\+157\+.*\.key` and **MUST** be inside the `/data` volume
+2. `mandatory` **BINDMAN_NAMESERVER_KEY_FILE**: the zone keyfile name that will be used to authenticate with the nameserver. **MUST** match the regexp `K.*\.\+157\+.*\.key` and **MUST** be inside the `/data` volume
 
 3. `mandatory` **BINDMAN_NAMESERVER_ZONE**: the name of the zone a bindman-dns-bind9 instance is able to manage;
 
