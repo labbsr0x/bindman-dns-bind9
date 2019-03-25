@@ -31,16 +31,16 @@ func (nsu *NSUpdate) check() (success bool, errs []string) {
 	if nsu.KeyFile == "" {
 		errs = append(errs, fmt.Sprintf(errMsg, BINDMAN_NAMESERVER_KEYFILE))
 		success = false
+	} else {
+		m := `K.*\.\+157\+.*\.key`
+		if succ, _ := regexp.MatchString(m, nsu.KeyFile); !succ {
+			errs = append(errs, fmt.Sprintf("Environment variable %s did not match the regex %v: %s", BINDMAN_NAMESERVER_KEYFILE, m, nsu.KeyFile))
+			success = false
+		}
 	}
 
 	if nsu.Zone == "" {
 		errs = append(errs, fmt.Sprintf(errMsg, BINDMAN_NAMESERVER_ZONE))
-		success = false
-	}
-
-	m := `K.*\.\+157\+.*\.key`
-	if succ, _ := regexp.MatchString(m, nsu.KeyFile); !succ {
-		errs = append(errs, fmt.Sprintf("Environment variable %s did not match the regex %v: %s", BINDMAN_NAMESERVER_KEYFILE, m, nsu.KeyFile))
 		success = false
 	}
 
