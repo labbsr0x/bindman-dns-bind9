@@ -74,7 +74,7 @@ func (nsu *NSUpdate) checkName(name string) (matched bool, err error) {
 func (nsu *NSUpdate) buildAddCommand(recordName, recordType, value string, ttl time.Duration) (cmd string, err error) {
 	_, err = nsu.checkName(recordName)
 	if err == nil {
-		cmd = fmt.Sprintf("update add %s.%s. %d %s %s\n", nsu.getSubdomainName(recordName), nsu.Zone, ttl, recordType, value)
+		cmd = fmt.Sprintf("update add %s.%s %d %s %s", nsu.getSubdomainName(recordName), nsu.Zone, int(ttl.Seconds()), recordType, value)
 	}
 	return
 }
@@ -83,7 +83,7 @@ func (nsu *NSUpdate) buildAddCommand(recordName, recordType, value string, ttl t
 func (nsu *NSUpdate) buildDeleteCommand(recordName, recordType string) (cmd string, err error) {
 	_, err = nsu.checkName(recordName)
 	if err == nil {
-		cmd = fmt.Sprintf("update delete %s.%s. %s\n", nsu.getSubdomainName(recordName), nsu.Zone, recordType)
+		cmd = fmt.Sprintf("update delete %s.%s. %s", nsu.getSubdomainName(recordName), nsu.Zone, recordType)
 	}
 	return
 }
