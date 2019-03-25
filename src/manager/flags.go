@@ -9,7 +9,7 @@ import (
 const (
 	dnsTtl                 = "dns-ttl"
 	dnsRemovalDelay        = "dns-removal-delay"
-	defaultDnsTtl          = 36 * time.Second
+	defaultDnsTtl          = time.Hour
 	defaultDnsRemovalDelay = 10 * time.Minute
 )
 
