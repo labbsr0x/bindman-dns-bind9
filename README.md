@@ -4,7 +4,7 @@
 
 This repository defines the component that manages Bind9 DNS Server instances.
 
-NSUpdate commands get dispatched from REST API calls defined in the bindman webhook project [Bindman DNS Webhook](https://github.com/labbsr0x/sandman-dns-webhook).
+NSUpdate commands get dispatched from REST API calls defined in the bindman webhook project [Bindman DNS Webhook](https://github.com/labbsr0x/bindman-dns-webhook).
 
 # Configuration
 
