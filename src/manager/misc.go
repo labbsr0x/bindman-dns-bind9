@@ -16,22 +16,23 @@ const (
 )
 
 // delayRemove schedules the removal of a DNS Resource Record
-// it cancels the operation when it idenfities the name was readded
+// it cancels the operation when it identifies the name was read
 func (m *Bind9Manager) delayRemove(name, recordType string) {
 	record, err := m.GetDNSRecord(name, recordType)
 	if err == nil {
 		go m.removeRecord(name, recordType) // marks its removal intent
-		c := time.Tick(m.RemovalDelay)
+		ticker := time.NewTicker(m.RemovalDelay)
+		defer ticker.Stop()
 		for {
 			select {
-			case <-c:
+			case <-ticker.C:
 
-				if _, err := m.DNSRecords.Read(name); err == nil { // record has been readded
+				if _, err := m.DNSRecords.Read(name); err == nil { // record has been read
 					logrus.Infof("Cancelling delayed removal of '%s'", name)
 					return
 				}
 
-				// only remove in case the record has not been readded
+				// only remove in case the record has not been read
 				if succ, err := m.DNSUpdater.RemoveRR(name, record.Type); !succ {
 					logrus.Infof("Error occurred while trying to remove '%s': %s", name, err)
 				}
@@ -60,7 +61,7 @@ func (m *Bind9Manager) saveRecord(record hookTypes.DNSRecord) (err error) {
 func (m *Bind9Manager) removeRecord(recordName, recordType string) {
 	m.Door.Lock()
 	defer m.Door.Unlock()
-	m.DNSRecords.Erase(m.getRecordFileName(recordName, recordType)) // marks its removal
+	_ = m.DNSRecords.Erase(m.getRecordFileName(recordName, recordType)) // marks its removal
 }
 
 // getRecordFileName return the name of the file holding the record information
