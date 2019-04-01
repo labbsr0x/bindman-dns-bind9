@@ -11,13 +11,24 @@ import (
 	"github.com/spf13/viper"
 )
 
-const basePath = "/data"
+const basePath = "./data"
 
 // serveCmd represents the serve command
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Starts the server and serves the HTTP REST API",
-	RunE:  runE,
+	Example: `  bindman-dns-bind9 serve --dns-ttl=1h --dns-removal-delay=20m --nameserver.key-file=Ktest.com.+157+50086.key
+
+  All command line options can be provided via environment variables by adding the prefix "BINDMAN_" 
+  and converting their names to upper case and replacing punctuation and hyphen with underscores. 
+  For example,
+
+        command line option                 environment variable
+        ------------------------------------------------------------------
+        --dns-removal-delay                 BINDMAN_DNS_REMOVAL_DELAY
+        --nameserver.key-file               BINDMAN_NAMESERVER_KEY_FILE
+`,
+	RunE: runE,
 }
 
 func runE(_ *cobra.Command, _ []string) error {
@@ -25,7 +36,7 @@ func runE(_ *cobra.Command, _ []string) error {
 	managerBuilder := new(manager.Builder).InitFromViper(viper.GetViper())
 	nsu, err := nsupdateBuilder.New(basePath)
 	if err != nil {
-		return fmt.Errorf("an error occurred while setting up the DNS Manager: %v", err)
+		return fmt.Errorf("\n  Error occurred while setting up the DNS Manager.\n  %v", err)
 	}
 	bind9Manager, err := managerBuilder.New(nsu, basePath)
 	if err != nil {
