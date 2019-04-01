@@ -23,7 +23,7 @@ services:
     build: .
     volumes:
       - data:/data
-    ports: 
+    ports:
       - 7070:7070
     environment:
       - BINDMAN_NAMESERVER_ADDRESS=bind
