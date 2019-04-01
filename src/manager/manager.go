@@ -3,6 +3,7 @@ package manager
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -58,8 +59,13 @@ func (m *Bind9Manager) GetDNSRecords() (records []hookTypes.DNSRecord, err error
 
 	err = filepath.Walk(m.DNSRecords.BasePath, func(path string, info os.FileInfo, errr error) error {
 		if strings.HasSuffix(path, Extension) {
-			r, _ := m.GetDNSRecord(m.getRecordNameAndType(info.Name()))
-			records = append(records, *r)
+			r, err := m.GetDNSRecord(m.getRecordNameAndType(info.Name()))
+			if err != nil {
+				return err
+			}
+			if r != nil {
+				records = append(records, *r)
+			}
 		}
 		return nil
 	})
@@ -68,9 +74,19 @@ func (m *Bind9Manager) GetDNSRecords() (records []hookTypes.DNSRecord, err error
 }
 
 // GetDNSRecord retrieves the dns record identified by name
+func (m *Bind9Manager) HasDNSRecord(name, recordType string) bool {
+	key := m.getRecordFileName(name, recordType)
+	return m.DNSRecords.Has(key)
+}
+
+// GetDNSRecord retrieves the dns record identified by name
 func (m *Bind9Manager) GetDNSRecord(name, recordType string) (record *hookTypes.DNSRecord, err error) {
 	m.Door.RLock()
 	defer m.Door.RUnlock()
+
+	if !m.HasDNSRecord(name, recordType) {
+		return nil, hookTypes.NotFoundError(fmt.Sprintf("No record found with name '%s' and type '%s'", name, recordType), nil)
+	}
 
 	var r []byte
 	r, err = m.DNSRecords.Read(m.getRecordFileName(name, recordType))
@@ -82,7 +98,7 @@ func (m *Bind9Manager) GetDNSRecord(name, recordType string) (record *hookTypes.
 
 // AddDNSRecord adds a new DNS record
 func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (succ bool, err error) {
-	succ, err = m.DNSUpdater.AddRR(record.Name, record.Type, record.Value, m.TTL)
+	succ, err = m.DNSUpdater.AddRR(record, m.TTL)
 	if succ {
 		err = m.saveRecord(record)
 		succ = err == nil
@@ -102,6 +118,9 @@ func (m *Bind9Manager) UpdateDNSRecord(record hookTypes.DNSRecord) (succ bool, e
 
 // RemoveDNSRecord removes a DNS record
 func (m *Bind9Manager) RemoveDNSRecord(name, recordType string) (bool, error) {
+	if !m.HasDNSRecord(name, recordType) {
+		return false, hookTypes.NotFoundError(fmt.Sprintf("No record found with name '%s' and type '%s", name, recordType), nil)
+	}
 	go m.delayRemove(name, recordType)
 	logrus.Infof("Record '%s' with type '%v' scheduled to be removed in %v seconds", name, recordType, m.RemovalDelay)
 	return true, nil
