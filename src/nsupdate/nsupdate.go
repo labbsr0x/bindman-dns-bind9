@@ -2,7 +2,6 @@ package nsupdate
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -32,25 +31,31 @@ type NSUpdate struct {
 // DNSUpdater defines an interface to communicate with DNS Server via nsupdate commands
 type DNSUpdater interface {
 	RemoveRR(name, recordType string) (success bool, err error)
-	AddRR(name, recordType, value string, ttl time.Duration) (success bool, err error)
+	AddRR(record hookTypes.DNSRecord, ttl time.Duration) (success bool, err error)
 	UpdateRR(record hookTypes.DNSRecord, ttl time.Duration) (success bool, err error)
 }
 
 // New constructs a new NSUpdate instance from environment variables
 func (b *Builder) New(basePath string) (result *NSUpdate, err error) {
 	b.BasePath = basePath
+
+	if !strings.HasSuffix(b.Zone, ".") {
+		b.Zone = fmt.Sprintf("%s.", b.Zone)
+	}
+
 	result = &NSUpdate{b}
 
 	if succ, errs := result.check(); !succ {
-		err = fmt.Errorf("Errors encountered: %v", strings.Join(errs, ", "))
+		err = fmt.Errorf("Errors encountered:\n\t%v", strings.Join(errs, "\n\t"))
 	}
 	return
 }
 
 // RemoveRR removes a Resource Record
 func (nsu *NSUpdate) RemoveRR(name, recordType string) (succ bool, err error) {
-	cmd, err := nsu.buildDeleteCommand(name, recordType)
+	err = nsu.checkName(name)
 	if err == nil {
+		cmd := nsu.buildDeleteCommand(name, recordType)
 		logrus.Infof("cmd to be executed: %s", cmd)
 		succ, err = nsu.ExecuteCommand(cmd)
 	}
@@ -58,9 +63,10 @@ func (nsu *NSUpdate) RemoveRR(name, recordType string) (succ bool, err error) {
 }
 
 // AddRR adds a Resource Record
-func (nsu *NSUpdate) AddRR(name, recordType, value string, ttl time.Duration) (succ bool, err error) {
-	cmd, err := nsu.buildAddCommand(name, recordType, value, ttl)
+func (nsu *NSUpdate) AddRR(record hookTypes.DNSRecord, ttl time.Duration) (succ bool, err error) {
+	err = nsu.checkName(record.Name)
 	if err == nil {
+		cmd := nsu.buildAddCommand(record.Name, record.Type, record.Value, ttl)
 		logrus.Infof("cmd to be executed: %s", cmd)
 		succ, err = nsu.ExecuteCommand(cmd)
 	}
@@ -69,14 +75,13 @@ func (nsu *NSUpdate) AddRR(name, recordType, value string, ttl time.Duration) (s
 
 // UpdateRR updates a DNS Resource Record
 func (nsu *NSUpdate) UpdateRR(record hookTypes.DNSRecord, ttl time.Duration) (succ bool, err error) {
-	deleteCmd, err := nsu.buildDeleteCommand(record.Name, record.Type)
+	err = nsu.checkName(record.Name)
 	if err == nil {
-		addCmd, err := nsu.buildAddCommand(record.Name, record.Type, record.Value, ttl)
-		if err == nil {
-			cmd := fmt.Sprintf("%v\n%v", deleteCmd, addCmd)
-			logrus.Infof("cmd to be executed: %s", cmd)
-			succ, err = nsu.ExecuteCommand(cmd)
-		}
+		deleteCmd := nsu.buildDeleteCommand(record.Name, record.Type)
+		addCmd := nsu.buildAddCommand(record.Name, record.Type, record.Value, ttl)
+		cmd := fmt.Sprintf("%v\n%v", deleteCmd, addCmd)
+		logrus.Infof("cmd to be executed: %s", cmd)
+		succ, err = nsu.ExecuteCommand(cmd)
 	}
 	return
 }
@@ -103,13 +108,13 @@ func (nsu *NSUpdate) BuildCmdFile(cmd string) (fileName string, err error) {
 	if err == nil {
 		writer := bufio.NewWriter(f)
 
-		writer.WriteString(fmt.Sprintf("server %s\n", nsu.Server))
-		writer.WriteString(fmt.Sprintf("zone %s\n", nsu.Zone))
-		writer.WriteString(cmd + "\n")
-		writer.WriteString("send\n")
+		_, err = writer.WriteString(fmt.Sprintf("server %s\n", nsu.Server))
+		_, err = writer.WriteString(fmt.Sprintf("zone %s\n", nsu.Zone))
+		_, err = writer.WriteString(cmd + "\n")
+		_, err = writer.WriteString("send")
 
-		writer.Flush()
-		f.Close()
+		err = writer.Flush()
+		err = f.Close()
 
 		fileName = f.Name()
 	}
