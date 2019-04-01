@@ -1,8 +1,10 @@
 language: go
 
+services:
+    - docker
+
 go:
     - 1.11.x
 
 script: 
-    - go test -v ./src/manager
-    - go test -v ./src/nsupdate
+    - go test ./...
