@@ -48,7 +48,7 @@ func runE(_ *cobra.Command, _ []string) error {
 		"GitCommit": version.GitCommit,
 		"BuildTime": version.BuildTime,
 	}).Info("Bindman-DNS Bind9 version")
-	hook.Initialize(bind9Manager)
+	hook.Initialize(bind9Manager, version.Version)
 	return nil
 }
 

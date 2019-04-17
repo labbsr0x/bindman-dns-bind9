@@ -97,18 +97,17 @@ func (m *Bind9Manager) GetDNSRecord(name, recordType string) (record *hookTypes.
 }
 
 // AddDNSRecord adds a new DNS record
-func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (succ bool, err error) {
-	succ, err = m.DNSUpdater.AddRR(record, m.TTL)
+func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (err error) {
+	succ, err := m.DNSUpdater.AddRR(record, m.TTL)
 	if succ {
 		err = m.saveRecord(record)
-		succ = err == nil
 	}
 	return
 }
 
 // UpdateDNSRecord updates an existing dns record
-func (m *Bind9Manager) UpdateDNSRecord(record hookTypes.DNSRecord) (succ bool, err error) {
-	succ, err = m.DNSUpdater.UpdateRR(record, m.TTL)
+func (m *Bind9Manager) UpdateDNSRecord(record hookTypes.DNSRecord) (err error) {
+	succ, err := m.DNSUpdater.UpdateRR(record, m.TTL)
 	if succ {
 		err = m.saveRecord(record)
 		succ = err == nil
@@ -117,11 +116,11 @@ func (m *Bind9Manager) UpdateDNSRecord(record hookTypes.DNSRecord) (succ bool, e
 }
 
 // RemoveDNSRecord removes a DNS record
-func (m *Bind9Manager) RemoveDNSRecord(name, recordType string) (bool, error) {
+func (m *Bind9Manager) RemoveDNSRecord(name, recordType string) error {
 	if !m.HasDNSRecord(name, recordType) {
-		return false, hookTypes.NotFoundError(fmt.Sprintf("No record found with name '%s' and type '%s", name, recordType), nil)
+		return hookTypes.NotFoundError(fmt.Sprintf("No record found with name '%s' and type '%s", name, recordType), nil)
 	}
 	go m.delayRemove(name, recordType)
 	logrus.Infof("Record '%s' with type '%v' scheduled to be removed in %v seconds", name, recordType, m.RemovalDelay)
-	return true, nil
+	return nil
 }
