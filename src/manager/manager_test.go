@@ -71,9 +71,9 @@ func TestUpdateDNSRecord(t *testing.T) {
 	record := rs[0]
 	record.Value = newValue
 
-	success, err := m.UpdateDNSRecord(record)
-	if !success || err != nil {
-		t.Errorf("Expecting the update of the record '%v' to succeed. Got result '%v' and err '%v'", record, success, err)
+	err := m.UpdateDNSRecord(record)
+	if err != nil {
+		t.Errorf("Expecting the update of the record '%v' to succeed. Got err '%v'", record, err)
 	}
 
 	// test get
@@ -108,9 +108,9 @@ func TestDelayRemove(t *testing.T) {
 
 	m.RemovalDelay = 2 * time.Second
 	// rest remove
-	result, err := m.RemoveDNSRecord("test0.test.com", "A")
-	if !result || err != nil {
-		t.Errorf("Expecting removal of the record '%v' to succeed. Got result '%v' and err '%v'", "test0.test.com", result, err)
+	err := m.RemoveDNSRecord("test0.test.com", "A")
+	if err != nil {
+		t.Errorf("Expecting removal of the record '%v' to succeed. Got err '%v'", "test0.test.com", err)
 	}
 
 	if atomic.LoadUint64(&updater.RemovalCount) != 0 {
@@ -119,13 +119,25 @@ func TestDelayRemove(t *testing.T) {
 
 	time.Sleep(3 * time.Second)
 
-	r, _ := m.GetDNSRecord(rs[0].Name, rs[0].Type)
+	r, err := m.GetDNSRecord(rs[0].Name, rs[0].Type)
+	if err == nil {
+		t.Fatalf("Must return an error when trying to get a nonexistent record, got %v", err)
+	}
 	if r != nil {
 		t.Errorf("Expecting the removal of the file record to succeed. Got the record '%v' instead.", r)
 	}
 
 	if atomic.LoadUint64(&updater.RemovalCount) != 1 {
 		t.Errorf("Expecting the updater.RemoveRR to be called exactly once after the grace period. Got '%v'", updater.RemovalCount)
+	}
+
+	// remove nonexistent record
+	err = m.RemoveDNSRecord("test0.test.com", "A")
+	if err == nil {
+		t.Errorf("Expecting removal of the record '%v' to fail. Got err nil", "test0.test.com")
+	}
+	if atomic.LoadUint64(&updater.RemovalCount) != 1 {
+		t.Errorf("Expecting the updater.RemoveRR to be called exactly twice after the grace period. Got '%v'", updater.RemovalCount)
 	}
 }
 
@@ -161,9 +173,9 @@ func initManagerWithNRecords(numberOfRecords int, t *testing.T) (*Bind9Manager, 
 
 	for i := 0; i < numberOfRecords; i++ {
 		record2Add := hookTypes.DNSRecord{Name: fmt.Sprintf("test%v.test.com", i), Value: "0.0.0.0", Type: "A"}
-		result, err := m.AddDNSRecord(record2Add)
-		if !result || err != nil {
-			t.Errorf("Expecting the addition of the record '%v' to succeed. Got result '%v' and err '%v'", record2Add, result, err)
+		err := m.AddDNSRecord(record2Add)
+		if err != nil {
+			t.Errorf("Expecting the addition of the record '%v' to succeed. Got err '%v'", record2Add, err)
 		}
 		records = append(records, record2Add)
 	}
@@ -182,12 +194,12 @@ type MockDNSUpdater struct {
 	RemovalCount uint64
 }
 
-func (mnsu *MockDNSUpdater) RemoveRR(name, recordType string) (bool, error) {
-	atomic.AddUint64(&mnsu.RemovalCount, 1)
+func (mnsu *MockDNSUpdater) AddRR(record hookTypes.DNSRecord, ttl time.Duration) (success bool, err error) {
 	return mnsu.Result, mnsu.Error
 }
 
-func (mnsu *MockDNSUpdater) AddRR(name, recordType, value string, ttl time.Duration) (bool, error) {
+func (mnsu *MockDNSUpdater) RemoveRR(name, recordType string) (bool, error) {
+	atomic.AddUint64(&mnsu.RemovalCount, 1)
 	return mnsu.Result, mnsu.Error
 }
 
