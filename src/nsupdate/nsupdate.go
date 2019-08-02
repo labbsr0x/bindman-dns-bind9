@@ -25,7 +25,7 @@ type Builder struct {
 
 // NSUpdate holds the information necessary to successfully run nsupdate requests
 type NSUpdate struct {
-	*Builder
+	Builder
 }
 
 // DNSUpdater defines an interface to communicate with DNS Server via nsupdate commands
@@ -36,19 +36,14 @@ type DNSUpdater interface {
 }
 
 // New constructs a new NSUpdate instance from environment variables
-func (b *Builder) New(basePath string) (result *NSUpdate, err error) {
+func (b *Builder) New(basePath string) (*NSUpdate, error) {
 	b.BasePath = basePath
-
-	if !strings.HasSuffix(b.Zone, ".") {
-		b.Zone = fmt.Sprintf("%s.", b.Zone)
-	}
-
-	result = &NSUpdate{b}
+	result := &NSUpdate{*b}
 
 	if succ, errs := result.check(); !succ {
-		err = fmt.Errorf("Errors encountered:\n\t%v", strings.Join(errs, "\n\t"))
+		return nil, fmt.Errorf("Errors encountered:\n\t%v", strings.Join(errs, "\n\t"))
 	}
-	return
+	return result, nil
 }
 
 // RemoveRR removes a Resource Record
