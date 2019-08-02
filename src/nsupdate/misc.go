@@ -15,11 +15,11 @@ const keyFileNamePattern = `K.*\.\+157\+.*\.key`
 func (nsu *NSUpdate) check() (success bool, errs []string) {
 	errMsg := `The "%v" must be specified`
 
-	if nsu.Server == "" {
+	if strings.TrimSpace(nsu.Server) == "" {
 		errs = append(errs, fmt.Sprintf(errMsg, "nameserver address"))
 	}
 
-	if nsu.KeyFile == "" {
+	if strings.TrimSpace(nsu.KeyFile) == "" {
 		errs = append(errs, fmt.Sprintf(errMsg, "nameserver key file name"))
 	} else {
 		if succ, _ := regexp.MatchString(keyFileNamePattern, nsu.KeyFile); !succ {
@@ -27,7 +27,7 @@ func (nsu *NSUpdate) check() (success bool, errs []string) {
 		}
 	}
 
-	if nsu.Zone == "" {
+	if strings.TrimSpace(nsu.Zone) == "" {
 		errs = append(errs, fmt.Sprintf(errMsg, "DNS zone"))
 	}
 
