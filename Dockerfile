@@ -19,7 +19,9 @@ RUN GIT_COMMIT=$(git rev-parse --short HEAD 2> /dev/null || true) \
     -a -installsuffix cgo -o /bindman-dns-manager src/main.go
 
 # PKG
-FROM scratch
+FROM alpine:latest
+
+RUN apk add --no-cache --update bind-tools
 
 VOLUME [ "/data" ]
 COPY --from=builder /bindman-dns-manager /go/bin/
