@@ -33,7 +33,7 @@ func (m *Bind9Manager) delayRemove(name, recordType string) {
 				}
 
 				// only remove in case the record has not been read
-				if succ, err := m.DNSUpdater.RemoveRR(name, record.Type); !succ {
+				if err := m.DNSUpdater.RemoveRR(name, recordType); err != nil {
 					logrus.Infof("Error occurred while trying to remove '%s': %s", name, err)
 				}
 				return

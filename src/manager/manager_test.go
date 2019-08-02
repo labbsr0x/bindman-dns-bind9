@@ -183,10 +183,6 @@ func initManagerWithNRecords(numberOfRecords int, t *testing.T) (*Bind9Manager, 
 	return m, updater, records
 }
 
-func areTwoRecordsEqual(r1, r2 hookTypes.DNSRecord) bool {
-	return !(r1.Name != r2.Name || r1.Value != r2.Value || r1.Type != r2.Type)
-}
-
 // MockDNSUpdater defines a mock NSUpdate for unit testing the manager
 type MockDNSUpdater struct {
 	Result       bool
@@ -194,15 +190,15 @@ type MockDNSUpdater struct {
 	RemovalCount uint64
 }
 
-func (mnsu *MockDNSUpdater) AddRR(record hookTypes.DNSRecord, ttl time.Duration) (success bool, err error) {
-	return mnsu.Result, mnsu.Error
+func (mnsu *MockDNSUpdater) AddRR(record hookTypes.DNSRecord, ttl time.Duration) error {
+	return mnsu.Error
 }
 
-func (mnsu *MockDNSUpdater) RemoveRR(name, recordType string) (bool, error) {
+func (mnsu *MockDNSUpdater) RemoveRR(name, recordType string) error {
 	atomic.AddUint64(&mnsu.RemovalCount, 1)
-	return mnsu.Result, mnsu.Error
+	return mnsu.Error
 }
 
-func (mnsu *MockDNSUpdater) UpdateRR(record hookTypes.DNSRecord, ttl time.Duration) (bool, error) {
-	return mnsu.Result, mnsu.Error
+func (mnsu *MockDNSUpdater) UpdateRR(record hookTypes.DNSRecord, ttl time.Duration) error {
+	return mnsu.Error
 }
