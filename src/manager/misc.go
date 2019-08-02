@@ -18,8 +18,7 @@ const (
 // delayRemove schedules the removal of a DNS Resource Record
 // it cancels the operation when it identifies the name was read
 func (m *Bind9Manager) delayRemove(name, recordType string) {
-	record, err := m.GetDNSRecord(name, recordType)
-	if err == nil {
+	if m.HasDNSRecord(name, recordType) {
 		go m.removeRecord(name, recordType) // marks its removal intent
 		ticker := time.NewTicker(m.RemovalDelay)
 		defer ticker.Stop()
@@ -27,7 +26,7 @@ func (m *Bind9Manager) delayRemove(name, recordType string) {
 			select {
 			case <-ticker.C:
 
-				if _, err := m.DNSRecords.Read(name); err == nil { // record has been read
+				if _, err := m.DNSRecords.Read(m.getRecordFileName(name, recordType)); err == nil { // record has been read
 					logrus.Infof("Cancelling delayed removal of '%s'", name)
 					return
 				}
