@@ -98,8 +98,8 @@ func (m *Bind9Manager) GetDNSRecord(name, recordType string) (record *hookTypes.
 
 // AddDNSRecord adds a new DNS record
 func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (err error) {
-	succ, err := m.DNSUpdater.AddRR(record, m.TTL)
-	if succ {
+	err = m.DNSUpdater.AddRR(record, m.TTL)
+	if err == nil {
 		err = m.saveRecord(record)
 	}
 	return
@@ -107,10 +107,9 @@ func (m *Bind9Manager) AddDNSRecord(record hookTypes.DNSRecord) (err error) {
 
 // UpdateDNSRecord updates an existing dns record
 func (m *Bind9Manager) UpdateDNSRecord(record hookTypes.DNSRecord) (err error) {
-	succ, err := m.DNSUpdater.UpdateRR(record, m.TTL)
-	if succ {
+	err = m.DNSUpdater.UpdateRR(record, m.TTL)
+	if err == nil {
 		err = m.saveRecord(record)
-		succ = err == nil
 	}
 	return
 }
