@@ -108,7 +108,7 @@ func (nsu *NSUpdate) BuildCmdFile(cmd string) (fileName string, err error) {
 	if err == nil {
 		writer := bufio.NewWriter(f)
 
-		_, err = writer.WriteString(fmt.Sprintf("server %s\n", nsu.Server))
+		_, err = writer.WriteString(fmt.Sprintf("server %s %s\n", nsu.Server, nsu.Port))
 		_, err = writer.WriteString(fmt.Sprintf("zone %s\n", nsu.Zone))
 		_, err = writer.WriteString(cmd + "\n")
 		_, err = writer.WriteString("send")
