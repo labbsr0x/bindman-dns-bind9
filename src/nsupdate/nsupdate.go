@@ -104,7 +104,7 @@ func (nsu *NSUpdate) ExecuteCommand(cmd string) (err error) {
 
 // BuildCmdFile creates an nsupdate cmd file
 func (nsu *NSUpdate) BuildCmdFile(cmd string) (fileName string, err error) {
-	f, err := ioutil.TempFile(os.TempDir(), "bindman-"+uuid.New().String())
+	f, err := ioutil.TempFile(os.TempDir(), uuid.New().String()+"-*.bindman")
 	if err == nil {
 		writer := bufio.NewWriter(f)
 
