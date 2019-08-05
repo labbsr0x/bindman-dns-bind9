@@ -1,9 +1,10 @@
 package manager
 
 import (
+	"time"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"time"
 )
 
 const (
@@ -15,8 +16,8 @@ const (
 
 // AddFlags adds flags for Options.
 func AddFlags(flags *pflag.FlagSet) {
-	flags.Duration(dnsTtl, defaultDnsTtl, "DNS recording rule expiration time (or time-to-live)")
-	flags.Duration(dnsRemovalDelay, defaultDnsRemovalDelay, "Delay in minutes to be applied to the removal of an DNS entry. This is to guarantee that in fact the removal should be processed.")
+	flags.Duration(dnsTtl, defaultDnsTtl, "DNS recording rule expiration time (or time-to-live). Valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\"")
+	flags.Duration(dnsRemovalDelay, defaultDnsRemovalDelay, "Delay in minutes to be applied to the removal of an DNS entry. This is to guarantee that in fact the removal should be processed. Valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\"")
 }
 
 // InitFromViper initializes Options with properties retrieved from Viper.
