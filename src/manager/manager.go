@@ -120,6 +120,6 @@ func (m *Bind9Manager) RemoveDNSRecord(name, recordType string) error {
 		return hookTypes.NotFoundError(fmt.Sprintf("No record found with name '%s' and type '%s", name, recordType), nil)
 	}
 	go m.delayRemove(name, recordType)
-	logrus.Infof("Record '%s' with type '%v' scheduled to be removed in %v seconds", name, recordType, m.RemovalDelay)
+	logrus.Infof("Record '%s' with type '%v' scheduled to be removed in %v", name, recordType, m.RemovalDelay)
 	return nil
 }
