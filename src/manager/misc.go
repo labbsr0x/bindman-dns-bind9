@@ -11,39 +11,28 @@ import (
 )
 
 const (
-	// ErrInitNSUpdate error code for problems while setting up NSUpdate
-	ErrInitNSUpdate = iota
-)
-
-const (
-	// SANDMAN_DNS_TTL environment variable identifier for the time-to-live to be applied
-	SANDMAN_DNS_TTL = "BINDMAN_DNS_TTL"
-
-	// SANDMAN_DNS_REMOVAL_DELAY environment variable identifier for the removal delay time to be applied
-	SANDMAN_DNS_REMOVAL_DELAY = "BINDMAN_DNS_REMOVAL_DELAY"
-
 	// Extension sets the extension of the files holding the records infos
 	Extension = "bindman"
 )
 
 // delayRemove schedules the removal of a DNS Resource Record
-// it cancels the operation when it idenfities the name was readded
+// it cancels the operation when it identifies the name was read
 func (m *Bind9Manager) delayRemove(name, recordType string) {
-	record, err := m.GetDNSRecord(name, recordType)
-	if err == nil {
+	if m.HasDNSRecord(name, recordType) {
 		go m.removeRecord(name, recordType) // marks its removal intent
-		c := time.Tick(m.RemovalDelay)
+		ticker := time.NewTicker(m.RemovalDelay)
+		defer ticker.Stop()
 		for {
 			select {
-			case <-c:
+			case <-ticker.C:
 
-				if _, err := m.DNSRecords.Read(name); err == nil { // record has been readded
+				if _, err := m.DNSRecords.Read(m.getRecordFileName(name, recordType)); err == nil { // record has been read
 					logrus.Infof("Cancelling delayed removal of '%s'", name)
 					return
 				}
 
-				// only remove in case the record has not been readded
-				if succ, err := m.DNSUpdater.RemoveRR(name, record.Type); !succ {
+				// only remove in case the record has not been read
+				if err := m.DNSUpdater.RemoveRR(name, recordType); err != nil {
 					logrus.Infof("Error occurred while trying to remove '%s': %s", name, err)
 				}
 				return
@@ -71,7 +60,7 @@ func (m *Bind9Manager) saveRecord(record hookTypes.DNSRecord) (err error) {
 func (m *Bind9Manager) removeRecord(recordName, recordType string) {
 	m.Door.Lock()
 	defer m.Door.Unlock()
-	m.DNSRecords.Erase(m.getRecordFileName(recordName, recordType)) // marks its removal
+	_ = m.DNSRecords.Erase(m.getRecordFileName(recordName, recordType)) // marks its removal
 }
 
 // getRecordFileName return the name of the file holding the record information
