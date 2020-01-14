@@ -13,9 +13,9 @@ RUN GIT_COMMIT=$(git rev-parse --short HEAD 2> /dev/null || true) \
  && BUILDTIME=$(TZ=UTC date -u '+%Y-%m-%dT%H:%M:%SZ') \
  && VERSION=$(git describe --abbrev=0 --tags 2> /dev/null || true) \
  && CGO_ENABLED=0 GOOS=linux go build --ldflags "-s -w \
-    -X github.com/labbsr0x/bindman-dns-bind9/src/version.Version=${VERSION:-unknow-version} \
-    -X github.com/labbsr0x/bindman-dns-bind9/src/version.GitCommit=${GIT_COMMIT} \
-    -X github.com/labbsr0x/bindman-dns-bind9/src/version.BuildTime=${BUILDTIME}" \
+    -X github.com/labbsr0x/bindman-dns-bind9/version.Version=${VERSION:-unknow-version} \
+    -X github.com/labbsr0x/bindman-dns-bind9/version.GitCommit=${GIT_COMMIT} \
+    -X github.com/labbsr0x/bindman-dns-bind9/version.BuildTime=${BUILDTIME}" \
     -a -installsuffix cgo -o /bindman-dns-manager src/main.go
 
 # PKG
