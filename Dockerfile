@@ -23,7 +23,7 @@ RUN GIT_COMMIT=$(git rev-parse --short HEAD 2> /dev/null || true) \
     -a -installsuffix cgo -o /bindman-dns-bind9 main.go
 
 ## PKG
-FROM alpine
+FROM alpine:3.11.2
 
 RUN apk update \
     && apk add --no-cache ca-certificates bind-tools \
