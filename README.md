@@ -1,4 +1,5 @@
 # Bindman DNS
+[![Docker Pulls](https://img.shields.io/docker/pulls/labbsr0x/bindman-dns-bind9.svg)](https://hub.docker.com/r/labbsr0x/bindman-dns-bind9)
 ![Build Status](https://travis-ci.com/labbsr0x/bindman-dns-bind9.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/labbsr0x/bindman-dns-bind9)](https://goreportcard.com/report/github.com/labbsr0x/bindman-dns-bind9)
 
