@@ -20,7 +20,7 @@ func AddFlags(flags *pflag.FlagSet) {
 	flags.String(nameServerAddress, "", "Address of the nameserver that an instance of a Bindman will manage")
 	flags.String(nameServerPort, defaultNameServerPort, "Custom port for communication with the nameserver")
 	flags.String(nameServerKeyFile, "", `Zone key-file name that will be used to authenticate with the nameserver. MUST match the regexp "K.*\.\+157\+.*\.key" and MUST be inside the /data volume`)
-	flags.String(nameServerZone, "", "The name of the zone a bindman-dns-bind9 instance is able to manage")
+	flags.StringSlice(nameServerZone, nil, "The name of the zones a bindman-dns-bind9 instance is able to manage")
 	flags.BoolP(debug, "d", false, "The name of the zone a bindman-dns-bind9 instance is able to manage")
 }
 
@@ -29,7 +29,7 @@ func (b *Builder) InitFromViper(v *viper.Viper) *Builder {
 	b.Server = v.GetString(nameServerAddress)
 	b.Port = v.GetString(nameServerPort)
 	b.KeyFile = v.GetString(nameServerKeyFile)
-	b.Zone = v.GetString(nameServerZone)
+	b.Zones = v.GetStringSlice(nameServerZone)
 	b.Debug = v.GetBool(debug)
 	return b
 }

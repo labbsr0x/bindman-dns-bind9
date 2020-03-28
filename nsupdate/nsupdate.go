@@ -19,7 +19,7 @@ type Builder struct {
 	Port     string
 	KeyFile  string
 	BasePath string
-	Zone     string
+	Zones    []string
 	Debug    bool
 }
 
@@ -91,7 +91,10 @@ func (nsu *NSUpdate) ExecuteCommand(cmd string) (err error) {
 			logrus.Infof("Executes cmd %s successfully", cmd)
 		}
 		if !nsu.Debug {
-			os.Remove(fileName)
+			if err := os.Remove(fileName); err != nil {
+				logrus.Errorf("error removing file %s: %s", fileName, err.Error())
+			}
+
 		}
 	}
 	return
@@ -104,7 +107,7 @@ func (nsu *NSUpdate) BuildCmdFile(cmd string) (fileName string, err error) {
 		writer := bufio.NewWriter(f)
 
 		_, err = writer.WriteString(fmt.Sprintf("server %s %s\n", nsu.Server, nsu.Port))
-		_, err = writer.WriteString(fmt.Sprintf("zone %s\n", nsu.Zone))
+		_, err = writer.WriteString(fmt.Sprintf("zone %s\n", nsu.Zones))
 		_, err = writer.WriteString(cmd + "\n")
 		_, err = writer.WriteString("send")
 
