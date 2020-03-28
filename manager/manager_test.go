@@ -14,7 +14,7 @@ const basePath = "./data"
 
 func TestMain(m *testing.M) {
 	exitCode := m.Run()
-	os.Remove(basePath)
+	_ = os.Remove(basePath)
 	os.Exit(exitCode)
 }
 
@@ -56,7 +56,7 @@ func TestAddDNSRecordAndGetAndList(t *testing.T) {
 	}
 
 	if len(records) != 1 {
-		t.Errorf("Expecting the list of records to have exactly one entry. Got %v", len(records))
+		t.Fatalf("Expecting the list of records to have exactly one entry. Got %v", len(records))
 	}
 
 	if records[0].Name != rs[0].Name || records[0].Value != rs[0].Value || records[0].Type != rs[0].Type {
@@ -190,15 +190,15 @@ type MockDNSUpdater struct {
 	RemovalCount uint64
 }
 
-func (mnsu *MockDNSUpdater) AddRR(record hookTypes.DNSRecord, ttl time.Duration) error {
+func (mnsu *MockDNSUpdater) AddRR(_ hookTypes.DNSRecord, _ time.Duration) error {
 	return mnsu.Error
 }
 
-func (mnsu *MockDNSUpdater) RemoveRR(name, recordType string) error {
+func (mnsu *MockDNSUpdater) RemoveRR(_, _ string) error {
 	atomic.AddUint64(&mnsu.RemovalCount, 1)
 	return mnsu.Error
 }
 
-func (mnsu *MockDNSUpdater) UpdateRR(record hookTypes.DNSRecord, ttl time.Duration) error {
+func (mnsu *MockDNSUpdater) UpdateRR(_ hookTypes.DNSRecord, _ time.Duration) error {
 	return mnsu.Error
 }
