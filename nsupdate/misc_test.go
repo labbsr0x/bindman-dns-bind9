@@ -47,7 +47,7 @@ func TestNSUpdate_buildDeleteCommand(t *testing.T) {
 				Builder: tt.fields.Builder,
 			}
 			if got := nsu.buildDeleteCommand(tt.args.recordName, tt.args.recordType); got != tt.want {
-				t.Errorf("NSUpdate.buildDeleteCommand() = %v, want %v", got, tt.want)
+				t.Errorf("%s: NSUpdate.buildDeleteCommand() = %v, want %v", tt.name, got, tt.want)
 			}
 		})
 	}
@@ -94,7 +94,7 @@ func TestNSUpdate_buildAddCommand(t *testing.T) {
 				Builder: tt.fields.Builder,
 			}
 			if got := nsu.buildAddCommand(tt.args.recordName, tt.args.recordType, tt.args.value, tt.args.ttl); got != tt.want {
-				t.Errorf("NSUpdate.buildAddCommand() = %v, want %v", got, tt.want)
+				t.Errorf("%s: NSUpdate.buildAddCommand() = %v, want %v", tt.name, got, tt.want)
 			}
 		})
 	}
@@ -136,11 +136,6 @@ func TestCheck(t *testing.T) {
 			returnValue{false, []string{errorMsgKeyFileName}},
 		},
 		{
-			"",
-			NSUpdate{Builder{Server: "localhost", KeyFile: "com.+157+50086", Zone: "test.com"}},
-			returnValue{false, []string{fmt.Sprintf("nameserver key file name did not match the regex %v: %s", keyFileNamePattern, "com.+157+50086")}},
-		},
-		{
 			"DNS zone required",
 			NSUpdate{Builder{Server: "localhost", KeyFile: "Ktest.com.+157+50086.key"}},
 			returnValue{false, []string{errorMsgDnsZone}},
@@ -154,12 +149,12 @@ func TestCheck(t *testing.T) {
 				t.Errorf("It was expected success=false but returned true")
 			}
 			if len(errs) != len(test.expected.errs) {
-				t.Errorf("The error array length must be %d but got %d", len(test.expected.errs), len(errs))
+				t.Errorf("%s: The error array length must be %d but got %d", test.name, len(test.expected.errs), len(errs))
 				t.FailNow()
 			}
 			for i, err := range test.expected.errs {
 				if errs[i] != err {
-					t.Errorf("Expected message was %s but got %s", err, errs[i])
+					t.Errorf("%s: Expected message was %s but got %s", test.name, err, errs[i])
 				}
 			}
 		})
@@ -276,7 +271,7 @@ func TestNSUpdate_getKeyFilePath(t *testing.T) {
 				Builder: *tt.fields.Builder,
 			}
 			if got := nsu.getKeyFilePath(); got != tt.want {
-				t.Errorf("NSUpdate.getKeyFilePath() = %v, want %v", got, tt.want)
+				t.Errorf("%s: NSUpdate.getKeyFilePath() = %v, want %v", tt.name, got, tt.want)
 			}
 		})
 	}
