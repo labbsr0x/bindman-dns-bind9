@@ -136,11 +136,6 @@ func TestCheck(t *testing.T) {
 			returnValue{false, []string{errorMsgKeyFileName}},
 		},
 		{
-			"",
-			NSUpdate{Builder{Server: "localhost", KeyFile: "com.+157+50086", Zone: "test.com"}},
-			returnValue{false, []string{fmt.Sprintf("nameserver key file name did not match the regex %v: %s", keyFileNamePattern, "com.+157+50086")}},
-		},
-		{
 			"DNS zone required",
 			NSUpdate{Builder{Server: "localhost", KeyFile: "Ktest.com.+157+50086.key"}},
 			returnValue{false, []string{errorMsgDnsZone}},

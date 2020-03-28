@@ -2,14 +2,12 @@ package nsupdate
 
 import (
 	"fmt"
-	"github.com/labbsr0x/bindman-dns-webhook/src/types"
 	"path"
-	"regexp"
 	"strings"
 	"time"
-)
 
-const keyFileNamePattern = `K.*\.\+157\+.*\.key`
+	"github.com/labbsr0x/bindman-dns-webhook/src/types"
+)
 
 // check tests if a NSUpdate setup is ok; returns a set of error strings in case something is not right
 func (nsu *NSUpdate) check() (success bool, errs []string) {
@@ -21,10 +19,6 @@ func (nsu *NSUpdate) check() (success bool, errs []string) {
 
 	if strings.TrimSpace(nsu.KeyFile) == "" {
 		errs = append(errs, fmt.Sprintf(errMsg, "nameserver key file name"))
-	} else {
-		if succ, _ := regexp.MatchString(keyFileNamePattern, nsu.KeyFile); !succ {
-			errs = append(errs, fmt.Sprintf("nameserver key file name did not match the regex %v: %s", keyFileNamePattern, nsu.KeyFile))
-		}
 	}
 
 	if strings.TrimSpace(nsu.Zone) == "" {

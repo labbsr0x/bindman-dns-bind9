@@ -10,7 +10,7 @@ const basePath = "./data"
 
 func TestMain(m *testing.M) {
 	exitCode := m.Run()
-	os.Remove(basePath)
+	_ = os.Remove(basePath)
 	os.Exit(exitCode)
 }
 
@@ -114,14 +114,30 @@ func TestBuilder_New(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid keyFile",
+			name: "empty keyFile",
+			fields: fields{
+				Server:  "server",
+				Zone:    "zone",
+				KeyFile: "",
+			},
+			args:    args{basePath},
+			wantErr: true,
+		},
+		{
+			name: "any keyFile file",
 			fields: fields{
 				Server:  "server",
 				KeyFile: "file.key",
 				Zone:    "zone",
 			},
+			wantResult: &NSUpdate{Builder{
+				Server:   "server",
+				KeyFile:  "file.key",
+				Zone:     "zone",
+				BasePath: basePath,
+			}},
 			args:    args{basePath},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -136,11 +152,11 @@ func TestBuilder_New(t *testing.T) {
 			}
 			gotResult, err := b.New(tt.args.basePath)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Builder.New() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("%s: Builder.New() error = %v, wantErr %v", tt.name, err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(gotResult, tt.wantResult) {
-				t.Errorf("Builder.New() = %v, want %v", gotResult, tt.wantResult)
+				t.Errorf("%s: Builder.New() = %v, want %v", tt.name, gotResult, tt.wantResult)
 			}
 		})
 	}
