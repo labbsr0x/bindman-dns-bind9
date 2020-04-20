@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "Records",
+			"name": "Records All",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -29,7 +29,7 @@
 			"response": []
 		},
 		{
-			"name": "Record",
+			"name": "Record By Query",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -57,6 +57,34 @@
 			"name": "Add Record",
 			"request": {
 				"method": "POST",
+				"header": [
+					{
+						"key": "Accept-Encoding",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"hello.test.com\",\n\t\"value\": \"0.0.0.0\",\n\t\"type\": \"A\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:7070/records",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "7070",
+					"path": [
+						"records"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Record",
+			"request": {
+				"method": "PUT",
 				"header": [
 					{
 						"key": "Accept-Encoding",
