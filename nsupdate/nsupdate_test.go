@@ -124,7 +124,7 @@ func TestBuilder_New(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "any keyFile file",
+			name: "any keyFile file name",
 			fields: fields{
 				Server:  "server",
 				KeyFile: "file.key",
