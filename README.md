@@ -29,7 +29,7 @@ A store of records being managed is needed. Hence, a `/data` volume must be mapp
 
 6. `optional` **BINDMAN_DNS_REMOVAL_DELAY**: the delay in minutes to be applied to the removal of an DNS entry. The default is 10 minutes. This is to guarantee that in fact the removal should be processed.
 
-7. `optional` **BINDMAN_MODE**: let the runtime know if the DEBUG mode is activated; useful for debugging the intermediary files created for sending `nsupdate` commands. Possible values: `DEBUG|PROD`. Empty defaults to `PROD`.
+7. `optional` **BINDMAN_DEBUG**: let the runtime know if the DEBUG mode is activated; useful for debugging the intermediary files created for sending `nsupdate` commands. Possible values: `false|true`. Empty defaults to `false`.
 
 # Secure communication
 
