@@ -42,3 +42,44 @@ dnssec-keygen -a HMAC-MD5 -b 512 -n HOST test.com
 ```
 
 [Go here](http://www.firewall.cx/linux-knowledgebase-tutorials/system-and-network-services/831-linux-bind-ipadd-data-file.html) to understand a bit more about how to properly configure your BIND DNS server.
+
+# How to Run locally
+
+This repository also comes with an example. Just go to your terminal and type:
+
+```
+> docker-compose up
+```
+
+This will lauch two services:
+
+1. a bind9 DNS;
+
+2. a bindman-dns-bind9;
+
+With these two services running, you can import the collection into [Postman](https://www.postman.com) with the file `bindman-dns-bind9.postman_collection.json` or by curl commands with the examples below.
+
+1. **Records All**
+```
+curl --location --request GET 'http://localhost:7070/records'
+```
+
+2. **Record By Query**
+```
+curl --location --request GET 'http://localhost:7070/records/hello.test.com/A'
+```
+
+3. **Add Record**
+```
+curl --location --request POST 'http://localhost:7070/records' --header 'Accept-Encoding: application/json' --header 'Content-Type: text/plain' --data-raw '{"name": "hello.test.com", "value": "127.0.0.1", "type": "A"}'
+```
+
+4. **Update Record**
+```
+curl --location --request PUT 'http://localhost:7070/records' --header 'Accept-Encoding: application/json' --header 'Content-Type: text/plain' --data-raw '{"name": "hello.test.com", "value": "192.168.0.1", "type": "A"}'
+```
+
+5. **Remove Record**
+```
+curl --location --request DELETE 'http://localhost:7070/records/hello.test.com/A'
+```
