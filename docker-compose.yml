@@ -30,7 +30,7 @@ services:
       - BINDMAN_NAMESERVER_KEY_FILE=Ktest.com.+157+50086.key
       - BINDMAN_NAMESERVER_ZONE=test.com
       - BINDMAN_DNS_REMOVAL_DELAY=1
-      - BINDMAN_MODE=DEBUG
+      - BINDMAN_DEBUG=false
 
 volumes:
   data:
